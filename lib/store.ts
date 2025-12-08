@@ -103,6 +103,27 @@ export interface ScheduleItem {
   duration: number
   task: string
   priority: "high" | "medium" | "low"
+  taskId?: string
+  type?: "work" | "break" | "meeting"
+}
+
+// AI Plan types
+export interface AIPlan {
+  id: string
+  plan_date: string
+  schedule: ScheduleItem[]
+  explanation: string | null
+  reasoning: Record<string, unknown> | null
+  status: "pending" | "accepted" | "rejected" | "edited" | "expired"
+  generated_at: string
+}
+
+export interface UserAIProfile {
+  optimal_focus_duration: number
+  preferred_work_start_hour: number
+  preferred_work_end_hour: number
+  most_productive_hours: number[]
+  avg_plan_acceptance_rate: number
 }
 
 export interface TimeBlock {
@@ -332,6 +353,18 @@ interface StoreState {
   auth: AuthState
   setAuth: (isAuthenticated: boolean, userEmail?: string) => void
   logout: () => void
+
+  // AI Features
+  currentAIPlan: AIPlan | null
+  userAIProfile: UserAIProfile | null
+  aiPlanLoading: boolean
+  aiPlanError: string | null
+  setCurrentAIPlan: (plan: AIPlan | null) => void
+  setUserAIProfile: (profile: UserAIProfile | null) => void
+  setAIPlanLoading: (loading: boolean) => void
+  setAIPlanError: (error: string | null) => void
+  acceptAIPlan: () => void
+  rejectAIPlan: () => void
 }
 
 export const useStore = create<StoreState>((set, get) => ({
@@ -492,6 +525,12 @@ export const useStore = create<StoreState>((set, get) => ({
     isAuthenticated: false,
     userEmail: "",
   },
+
+  // AI Features - Initial State
+  currentAIPlan: null,
+  userAIProfile: null,
+  aiPlanLoading: false,
+  aiPlanError: null,
 
   addTask: async (task) => {
     try {
@@ -1730,6 +1769,62 @@ For detailed analytics, visit the Analytics dashboard.
       challenges: [],
       timeBlocks: [],
       notifications: [],
+      currentAIPlan: null,
+      userAIProfile: null,
+      aiPlanLoading: false,
+      aiPlanError: null,
     })
+  },
+
+  // AI Features - Actions
+  setCurrentAIPlan: (plan) => set({ currentAIPlan: plan }),
+  
+  setUserAIProfile: (profile) => set({ userAIProfile: profile }),
+  
+  setAIPlanLoading: (loading) => set({ aiPlanLoading: loading }),
+  
+  setAIPlanError: (error) => set({ aiPlanError: error }),
+
+  acceptAIPlan: async () => {
+    const state = get()
+    if (!state.currentAIPlan) return
+    
+    try {
+      const api = await import("./api")
+      await api.aiAPI.acceptPlan(state.currentAIPlan.id)
+      
+      set({
+        currentAIPlan: {
+          ...state.currentAIPlan,
+          status: "accepted",
+        },
+      })
+      
+      // Also accept schedule to history
+      state.acceptSchedule()
+    } catch (error) {
+      console.error("Failed to accept AI plan:", error)
+      set({ aiPlanError: "Failed to accept plan" })
+    }
+  },
+
+  rejectAIPlan: async () => {
+    const state = get()
+    if (!state.currentAIPlan) return
+    
+    try {
+      const api = await import("./api")
+      await api.aiAPI.rejectPlan(state.currentAIPlan.id)
+      
+      set({
+        currentAIPlan: {
+          ...state.currentAIPlan,
+          status: "rejected",
+        },
+      })
+    } catch (error) {
+      console.error("Failed to reject AI plan:", error)
+      set({ aiPlanError: "Failed to reject plan" })
+    }
   },
 }))

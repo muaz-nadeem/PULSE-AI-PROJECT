@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useStore } from "@/lib/store"
+import { aiAPI } from "@/lib/api"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { MessageSquare, Send, Lightbulb } from "lucide-react"
+import { MessageSquare, Send, Lightbulb, Sparkles, AlertCircle, Loader2 } from "lucide-react"
 
 interface Message {
   id: string
@@ -14,65 +15,139 @@ interface Message {
   timestamp: Date
 }
 
-const coachResponses = [
-  "Great question! Let me help you with that.",
-  "I notice you've been working hard. Remember to take breaks!",
-  "Your focus sessions are improving. Keep it up!",
-  "Would you like me to reorganize your tasks for better productivity?",
-  "You're making excellent progress this week!",
-  "Try batching similar tasks together - it can boost your efficiency.",
-  "Consider tackling your most important task first thing in the morning.",
-  "Your streak is impressive! Keep maintaining this momentum.",
-]
-
 export default function CoachPanel() {
   const { tasks, analytics } = useStore()
   const [messages, setMessages] = useState<Message[]>([])
-  const [isMounted, setIsMounted] = useState(false)
-
-  // Initialize messages only on client side to avoid hydration mismatch
-  useEffect(() => {
-    setIsMounted(true)
-    setMessages([
-      {
-        id: "1",
-        text: "Hey! I'm your AI Productivity Coach. I'm here to help you stay focused and achieve your goals. How can I help you today?",
-        sender: "coach",
-        timestamp: new Date(Date.now() - 5 * 60000),
-      },
-    ])
-  }, [])
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [isLoadingHistory, setIsLoadingHistory] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [isMounted, setIsMounted] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
-  const handleSend = async () => {
-    if (!input.trim()) return
+  // Scroll to bottom when messages change
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
 
-    // Add user message
+  useEffect(() => {
+    scrollToBottom()
+  }, [messages])
+
+  // Load chat history on mount
+  useEffect(() => {
+    setIsMounted(true)
+    loadChatHistory()
+  }, [])
+
+  async function loadChatHistory() {
+    setIsLoadingHistory(true)
+    try {
+      const history = await aiAPI.getChatHistory(20)
+      const mapped = history.reverse().map((h: any) => ({
+        id: h.id,
+        text: h.message,
+        sender: h.role === "user" ? "user" : "coach",
+        timestamp: new Date(h.created_at),
+      }))
+
+      if (mapped.length === 0) {
+        // Add welcome message for new users
+        mapped.push({
+          id: "welcome",
+          text: "Hey! 👋 I'm your AI Productivity Coach powered by Gemini. I've been analyzing your productivity patterns and I'm here to help you stay focused and achieve your goals. How can I help you today?",
+          sender: "coach",
+          timestamp: new Date(),
+        })
+      }
+
+      setMessages(mapped)
+    } catch (err) {
+      console.error("Failed to load chat history:", err)
+      // Add welcome message even if history fails
+      setMessages([{
+        id: "welcome",
+        text: "Hey! 👋 I'm your AI Productivity Coach. I'm here to help you stay focused and achieve your goals. How can I help you today?",
+        sender: "coach",
+        timestamp: new Date(),
+      }])
+    } finally {
+      setIsLoadingHistory(false)
+    }
+  }
+
+  async function handleSend() {
+    if (!input.trim() || isLoading) return
+
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: input,
+      text: input.trim(),
       sender: "user",
       timestamp: new Date(),
     }
-    setMessages([...messages, userMessage])
+    setMessages((prev) => [...prev, userMessage])
     setInput("")
     setIsLoading(true)
+    setError(null)
 
-    // Simulate AI response delay
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    try {
+      // Send to AI coach endpoint
+      const response = await fetch("/api/ai/coach", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMessage.text }),
+      })
 
-    const coachMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      text: coachResponses[Math.floor(Math.random() * coachResponses.length)],
-      sender: "coach",
-      timestamp: new Date(),
+      if (!response.ok) {
+        throw new Error("Failed to get response")
+      }
+
+      const data = await response.json()
+
+      const coachMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: data.response,
+        sender: "coach",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, coachMessage])
+    } catch (err) {
+      console.error("Chat failed:", err)
+      setError("I'm having trouble connecting right now. Please try again.")
+      
+      // Add fallback response
+      const fallbackMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm experiencing some technical difficulties at the moment. In the meantime, here's a tip: Try breaking your tasks into smaller, manageable chunks and tackle them one at a time. Feel free to try again in a moment!",
+        sender: "coach",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, fallbackMessage])
+    } finally {
+      setIsLoading(false)
     }
-    setMessages((prev) => [...prev, coachMessage])
-    setIsLoading(false)
+  }
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter" && !e.shiftKey) {
+      e.preventDefault()
+      handleSend()
+    }
   }
 
   const completedCount = tasks.filter((t) => t.completed).length
+
+  // Quick suggestion buttons
+  const quickSuggestions = [
+    "How can I be more productive today?",
+    "I'm feeling distracted, help!",
+    "What should I focus on first?",
+    "Give me a motivation boost",
+  ]
+
+  const handleQuickSuggestion = (suggestion: string) => {
+    setInput(suggestion)
+  }
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -82,8 +157,9 @@ export default function CoachPanel() {
           <h1 className="text-4xl font-bold text-foreground flex items-center gap-3">
             <MessageSquare className="w-8 h-8 text-primary" />
             AI Coach
+            <Sparkles className="w-5 h-5 text-accent" />
           </h1>
-          <p className="text-muted-foreground mt-2">Your personal productivity assistant</p>
+          <p className="text-muted-foreground mt-2">Your personal productivity assistant powered by Gemini</p>
         </div>
 
         {/* Quick Stats */}
@@ -104,48 +180,88 @@ export default function CoachPanel() {
           </Card>
         </div>
 
+        {/* Error Message */}
+        {error && (
+          <Card className="p-3 mb-4 bg-red-500/10 border-red-500/30">
+            <div className="flex items-center gap-2 text-red-600 text-sm">
+              <AlertCircle className="w-4 h-4" />
+              <span>{error}</span>
+            </div>
+          </Card>
+        )}
+
         {/* Chat Area */}
-        <Card className="flex-1 flex flex-col bg-card border-border mb-4">
+        <Card className="flex-1 flex flex-col bg-card border-border mb-4 overflow-hidden">
           {/* Messages */}
           <div className="flex-1 overflow-y-auto p-6 space-y-4">
-            {messages.map((message) => (
-              <div key={message.id} className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}>
-                <div
-                  className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
-                    message.sender === "user"
-                      ? "bg-primary text-white rounded-br-none"
-                      : "bg-secondary/50 text-foreground border border-border/50 rounded-bl-none"
-                  }`}
-                >
-                  <p className="text-sm">{message.text}</p>
-                  {isMounted && (
-                    <p
-                      className={`text-xs mt-1 ${message.sender === "user" ? "text-white/70" : "text-muted-foreground"}`}
+            {isLoadingHistory ? (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center">
+                  <Loader2 className="w-8 h-8 animate-spin text-primary mx-auto" />
+                  <p className="text-sm text-muted-foreground mt-2">Loading conversation...</p>
+                </div>
+              </div>
+            ) : (
+              <>
+                {messages.map((message) => (
+                  <div
+                    key={message.id}
+                    className={`flex ${message.sender === "user" ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-xs lg:max-w-md px-4 py-3 rounded-lg ${
+                        message.sender === "user"
+                          ? "bg-primary text-primary-foreground rounded-br-none"
+                          : "bg-secondary/50 text-foreground border border-border/50 rounded-bl-none"
+                      }`}
                     >
-                      {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-                    </p>
-                  )}
-                </div>
-              </div>
-            ))}
-            {isLoading && (
-              <div className="flex justify-start">
-                <div className="bg-secondary/50 text-foreground border border-border/50 px-4 py-3 rounded-lg rounded-bl-none">
-                  <div className="flex gap-2">
-                    <div className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce" />
-                    <div
-                      className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    />
-                    <div
-                      className="w-2 h-2 bg-muted-foreground rounded-full animate-bounce"
-                      style={{ animationDelay: "0.4s" }}
-                    />
+                      <p className="text-sm whitespace-pre-wrap">{message.text}</p>
+                      {isMounted && (
+                        <p
+                          className={`text-xs mt-1 ${
+                            message.sender === "user" ? "text-primary-foreground/70" : "text-muted-foreground"
+                          }`}
+                        >
+                          {message.timestamp.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        </p>
+                      )}
+                    </div>
                   </div>
-                </div>
-              </div>
+                ))}
+                {isLoading && (
+                  <div className="flex justify-start">
+                    <div className="bg-secondary/50 text-foreground border border-border/50 px-4 py-3 rounded-lg rounded-bl-none">
+                      <div className="flex gap-2 items-center">
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        <span className="text-sm text-muted-foreground">Thinking...</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </>
             )}
           </div>
+
+          {/* Quick Suggestions */}
+          {messages.length <= 2 && !isLoadingHistory && (
+            <div className="px-6 pb-2">
+              <p className="text-xs text-muted-foreground mb-2">Quick suggestions:</p>
+              <div className="flex flex-wrap gap-2">
+                {quickSuggestions.map((suggestion, idx) => (
+                  <Button
+                    key={idx}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleQuickSuggestion(suggestion)}
+                    className="text-xs"
+                  >
+                    {suggestion}
+                  </Button>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* Input Area */}
           <div className="border-t border-border p-4">
@@ -153,18 +269,22 @@ export default function CoachPanel() {
               <Input
                 value={input}
                 onChange={(e) => setInput(e.target.value)}
-                onKeyPress={(e) => e.key === "Enter" && handleSend()}
+                onKeyPress={handleKeyPress}
                 placeholder="Ask me anything about productivity..."
                 className="bg-secondary/50 border-border"
-                disabled={isLoading}
+                disabled={isLoading || isLoadingHistory}
               />
               <Button
                 onClick={handleSend}
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || isLoadingHistory}
                 className="bg-primary hover:bg-primary/90"
                 size="icon"
               >
-                <Send className="w-5 h-5" />
+                {isLoading ? (
+                  <Loader2 className="w-5 h-5 animate-spin" />
+                ) : (
+                  <Send className="w-5 h-5" />
+                )}
               </Button>
             </div>
           </div>
@@ -177,8 +297,8 @@ export default function CoachPanel() {
             <div>
               <p className="font-semibold text-foreground text-sm mb-1">Coach Tip</p>
               <p className="text-sm text-muted-foreground">
-                You're doing great! Try scheduling your most important tasks during your peak focus hours (usually 9-11
-                AM).
+                I learn from your interactions! The more you chat with me and use the AI planner, 
+                the better I'll understand your work style and provide personalized advice.
               </p>
             </div>
           </div>

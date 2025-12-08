@@ -622,6 +622,233 @@ export interface Database {
           created_at?: string
         }
       }
+      // AI System Tables
+      daily_aggregates: {
+        Row: {
+          id: string
+          user_id: string
+          date: string
+          total_focus_minutes: number
+          focus_session_count: number
+          avg_focus_duration: number | null
+          longest_focus_session: number
+          tasks_completed: number
+          tasks_created: number
+          high_priority_completed: number
+          completion_rate: number | null
+          distraction_count: number
+          total_distraction_minutes: number
+          hourly_activity: Json
+          mood_score: number | null
+          daily_rating: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          date: string
+          total_focus_minutes?: number
+          focus_session_count?: number
+          avg_focus_duration?: number | null
+          longest_focus_session?: number
+          tasks_completed?: number
+          tasks_created?: number
+          high_priority_completed?: number
+          completion_rate?: number | null
+          distraction_count?: number
+          total_distraction_minutes?: number
+          hourly_activity?: Json
+          mood_score?: number | null
+          daily_rating?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          date?: string
+          total_focus_minutes?: number
+          focus_session_count?: number
+          avg_focus_duration?: number | null
+          longest_focus_session?: number
+          tasks_completed?: number
+          tasks_created?: number
+          high_priority_completed?: number
+          completion_rate?: number | null
+          distraction_count?: number
+          total_distraction_minutes?: number
+          hourly_activity?: Json
+          mood_score?: number | null
+          daily_rating?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      ai_plans: {
+        Row: {
+          id: string
+          user_id: string
+          plan_date: string
+          schedule: Json
+          explanation: string | null
+          reasoning: Json | null
+          generated_at: string
+          model_version: string
+          status: "pending" | "accepted" | "rejected" | "edited" | "expired"
+          accepted_at: string | null
+          rejected_at: string | null
+          original_schedule: Json | null
+          edit_count: number
+          last_edited_at: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          plan_date: string
+          schedule: Json
+          explanation?: string | null
+          reasoning?: Json | null
+          generated_at?: string
+          model_version?: string
+          status?: "pending" | "accepted" | "rejected" | "edited" | "expired"
+          accepted_at?: string | null
+          rejected_at?: string | null
+          original_schedule?: Json | null
+          edit_count?: number
+          last_edited_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          plan_date?: string
+          schedule?: Json
+          explanation?: string | null
+          reasoning?: Json | null
+          generated_at?: string
+          model_version?: string
+          status?: "pending" | "accepted" | "rejected" | "edited" | "expired"
+          accepted_at?: string | null
+          rejected_at?: string | null
+          original_schedule?: Json | null
+          edit_count?: number
+          last_edited_at?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      plan_feedback_events: {
+        Row: {
+          id: string
+          plan_id: string
+          user_id: string
+          event_type: "accepted" | "rejected" | "edited" | "task_completed" | "task_skipped"
+          event_data: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          plan_id: string
+          user_id: string
+          event_type: "accepted" | "rejected" | "edited" | "task_completed" | "task_skipped"
+          event_data?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          plan_id?: string
+          user_id?: string
+          event_type?: "accepted" | "rejected" | "edited" | "task_completed" | "task_skipped"
+          event_data?: Json | null
+          created_at?: string
+        }
+      }
+      user_ai_profiles: {
+        Row: {
+          id: string
+          user_id: string
+          optimal_focus_duration: number
+          preferred_work_start_hour: number
+          preferred_work_end_hour: number
+          preferred_break_duration: number
+          hourly_performance_scores: Json
+          most_productive_hours: Json
+          common_distraction_times: Json
+          total_plans_generated: number
+          total_plans_accepted: number
+          total_plans_rejected: number
+          avg_plan_acceptance_rate: number | null
+          last_analyzed_date: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          optimal_focus_duration?: number
+          preferred_work_start_hour?: number
+          preferred_work_end_hour?: number
+          preferred_break_duration?: number
+          hourly_performance_scores?: Json
+          most_productive_hours?: Json
+          common_distraction_times?: Json
+          total_plans_generated?: number
+          total_plans_accepted?: number
+          total_plans_rejected?: number
+          avg_plan_acceptance_rate?: number | null
+          last_analyzed_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          optimal_focus_duration?: number
+          preferred_work_start_hour?: number
+          preferred_work_end_hour?: number
+          preferred_break_duration?: number
+          hourly_performance_scores?: Json
+          most_productive_hours?: Json
+          common_distraction_times?: Json
+          total_plans_generated?: number
+          total_plans_accepted?: number
+          total_plans_rejected?: number
+          avg_plan_acceptance_rate?: number | null
+          last_analyzed_date?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      ai_chat_history: {
+        Row: {
+          id: string
+          user_id: string
+          role: "user" | "assistant"
+          message: string
+          context_snapshot: Json | null
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          role: "user" | "assistant"
+          message: string
+          context_snapshot?: Json | null
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          role?: "user" | "assistant"
+          message?: string
+          context_snapshot?: Json | null
+          created_at?: string
+        }
+      }
     }
   }
 }

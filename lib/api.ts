@@ -452,3 +452,239 @@ export const focusSessionsAPI = {
     }
   },
 }
+
+// AI API - Functions for AI-powered features
+export const aiAPI = {
+  /**
+   * Fetches today's AI-generated plan for the current user.
+   */
+  async getDailyPlan(date: string): Promise<any | null> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    const { data, error } = await supabase
+      .from("ai_plans")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("plan_date", date)
+      .single()
+
+    // PGRST116 means no rows found - that's okay, return null
+    if (error && error.code !== "PGRST116") {
+      handleSupabaseError(error)
+    }
+
+    return data || null
+  },
+
+  /**
+   * Marks a plan as accepted.
+   */
+  async acceptPlan(planId: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    const { error } = await supabase
+      .from("ai_plans")
+      .update({ 
+        status: "accepted", 
+        accepted_at: new Date().toISOString() 
+      })
+      .eq("id", planId)
+      .eq("user_id", user.id)
+
+    if (error) handleSupabaseError(error)
+
+    // Log feedback event
+    await supabase.from("plan_feedback_events").insert({
+      plan_id: planId,
+      user_id: user.id,
+      event_type: "accepted",
+    })
+  },
+
+  /**
+   * Marks a plan as rejected.
+   */
+  async rejectPlan(planId: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    const { error } = await supabase
+      .from("ai_plans")
+      .update({ 
+        status: "rejected", 
+        rejected_at: new Date().toISOString() 
+      })
+      .eq("id", planId)
+      .eq("user_id", user.id)
+
+    if (error) handleSupabaseError(error)
+
+    // Log feedback event
+    await supabase.from("plan_feedback_events").insert({
+      plan_id: planId,
+      user_id: user.id,
+      event_type: "rejected",
+    })
+  },
+
+  /**
+   * Updates a plan's schedule (when user edits it).
+   */
+  async updatePlanSchedule(planId: string, newSchedule: any[]): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    // First get current plan to store original
+    const { data: plan } = await supabase
+      .from("ai_plans")
+      .select("schedule, edit_count")
+      .eq("id", planId)
+      .eq("user_id", user.id)
+      .single()
+
+    const { error } = await supabase
+      .from("ai_plans")
+      .update({
+        schedule: newSchedule,
+        original_schedule: plan?.schedule || null,
+        status: "edited",
+        edit_count: (plan?.edit_count || 0) + 1,
+        last_edited_at: new Date().toISOString(),
+      })
+      .eq("id", planId)
+      .eq("user_id", user.id)
+
+    if (error) handleSupabaseError(error)
+
+    // Log feedback event
+    await supabase.from("plan_feedback_events").insert({
+      plan_id: planId,
+      user_id: user.id,
+      event_type: "edited",
+      event_data: { editCount: (plan?.edit_count || 0) + 1 },
+    })
+  },
+
+  /**
+   * Logs a feedback event for task completion within a plan.
+   */
+  async logPlanTaskCompletion(planId: string, taskId: string): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    await supabase.from("plan_feedback_events").insert({
+      plan_id: planId,
+      user_id: user.id,
+      event_type: "task_completed",
+      event_data: { taskId },
+    })
+  },
+
+  /**
+   * Fetches recent chat history for the AI coach.
+   */
+  async getChatHistory(limit: number = 20): Promise<any[]> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    const { data, error } = await supabase
+      .from("ai_chat_history")
+      .select("*")
+      .eq("user_id", user.id)
+      .order("created_at", { ascending: false })
+      .limit(limit)
+
+    if (error) handleSupabaseError(error)
+
+    return data || []
+  },
+
+  /**
+   * Saves a chat message to history.
+   */
+  async saveChatMessage(
+    role: "user" | "assistant",
+    message: string,
+    context?: Record<string, unknown>
+  ): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    const { error } = await supabase.from("ai_chat_history").insert({
+      user_id: user.id,
+      role,
+      message,
+      context_snapshot: context || null,
+    })
+
+    if (error) handleSupabaseError(error)
+  },
+
+  /**
+   * Fetches the user's AI profile (personalization data).
+   */
+  async getUserAIProfile(): Promise<any | null> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    const { data, error } = await supabase
+      .from("user_ai_profiles")
+      .select("*")
+      .eq("user_id", user.id)
+      .single()
+
+    if (error && error.code !== "PGRST116") {
+      handleSupabaseError(error)
+    }
+
+    return data || null
+  },
+
+  /**
+   * Fetches recent daily aggregates.
+   */
+  async getRecentAggregates(days: number = 14): Promise<any[]> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    const startDate = new Date()
+    startDate.setDate(startDate.getDate() - days)
+    const startDateStr = startDate.toISOString().split("T")[0]
+
+    const { data, error } = await supabase
+      .from("daily_aggregates")
+      .select("*")
+      .eq("user_id", user.id)
+      .gte("date", startDateStr)
+      .order("date", { ascending: false })
+
+    if (error) handleSupabaseError(error)
+
+    return data || []
+  },
+
+  /**
+   * Updates daily rating for a specific date.
+   */
+  async updateDailyRating(date: string, rating: number): Promise<void> {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) throw new Error("Not authenticated")
+
+    const clampedRating = Math.max(1, Math.min(10, rating))
+
+    const { error } = await supabase
+      .from("daily_aggregates")
+      .upsert(
+        {
+          user_id: user.id,
+          date,
+          daily_rating: clampedRating,
+        },
+        { onConflict: "user_id,date" }
+      )
+
+    if (error) handleSupabaseError(error)
+  },
+}

@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { useStore } from "@/lib/store"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { MessageSquare, Send, Lightbulb } from "lucide-react"
+import { getCoachResponse } from "@/lib/ai/coach"
 
 interface Message {
   id: string
@@ -14,21 +15,11 @@ interface Message {
   timestamp: Date
 }
 
-const coachResponses = [
-  "Great question! Let me help you with that.",
-  "I notice you've been working hard. Remember to take breaks!",
-  "Your focus sessions are improving. Keep it up!",
-  "Would you like me to reorganize your tasks for better productivity?",
-  "You're making excellent progress this week!",
-  "Try batching similar tasks together - it can boost your efficiency.",
-  "Consider tackling your most important task first thing in the morning.",
-  "Your streak is impressive! Keep maintaining this momentum.",
-]
-
 export default function CoachPanel() {
-  const { tasks, analytics } = useStore()
+  const { tasks, analytics, moodEntries, habits } = useStore()
   const [messages, setMessages] = useState<Message[]>([])
   const [isMounted, setIsMounted] = useState(false)
+  const messagesEndRef = useRef<HTMLDivElement>(null)
 
   // Initialize messages only on client side to avoid hydration mismatch
   useEffect(() => {
@@ -36,43 +27,76 @@ export default function CoachPanel() {
     setMessages([
       {
         id: "1",
-        text: "Hey! I'm your AI Productivity Coach. I'm here to help you stay focused and achieve your goals. How can I help you today?",
+        text: "Hey! I'm your AI Productivity Coach. I'm here to help you stay focused and achieve your goals. I can help you with tasks, productivity tips, scheduling, and more. How can I help you today?",
         sender: "coach",
         timestamp: new Date(Date.now() - 5 * 60000),
       },
     ])
   }, [])
+
+  // Scroll to bottom when messages change
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }, [messages])
+
   const [input, setInput] = useState("")
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSend = async () => {
-    if (!input.trim()) return
+    if (!input.trim() || isLoading) return
 
+    const userMessageText = input.trim()
+    
     // Add user message
     const userMessage: Message = {
       id: Date.now().toString(),
-      text: input,
+      text: userMessageText,
       sender: "user",
       timestamp: new Date(),
     }
-    setMessages([...messages, userMessage])
+    setMessages((prev) => [...prev, userMessage])
     setInput("")
     setIsLoading(true)
 
-    // Simulate AI response delay
-    await new Promise((resolve) => setTimeout(resolve, 800))
+    try {
+      // Get recent messages for context
+      const recentMessages = messages
+        .slice(-6)
+        .map((m) => `${m.sender === "user" ? "User" : "Coach"}: ${m.text}`)
 
-    const coachMessage: Message = {
-      id: (Date.now() + 1).toString(),
-      text: coachResponses[Math.floor(Math.random() * coachResponses.length)],
-      sender: "coach",
-      timestamp: new Date(),
+      // Get AI response with context
+      const aiResponse = await getCoachResponse(userMessageText, {
+        tasks,
+        analytics,
+        moodEntries,
+        habits,
+        recentMessages,
+      })
+
+      const coachMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: aiResponse,
+        sender: "coach",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, coachMessage])
+    } catch (error: any) {
+      console.error("Error getting coach response:", error)
+      const errorMessage: Message = {
+        id: (Date.now() + 1).toString(),
+        text: "I'm having trouble connecting right now. Please try again in a moment, or check if your Gemini API key is configured.",
+        sender: "coach",
+        timestamp: new Date(),
+      }
+      setMessages((prev) => [...prev, errorMessage])
+    } finally {
+      setIsLoading(false)
     }
-    setMessages((prev) => [...prev, coachMessage])
-    setIsLoading(false)
   }
 
   const completedCount = tasks.filter((t) => t.completed).length
+  const totalTasks = tasks.length
+  const highPriorityTasks = tasks.filter((t) => !t.completed && t.priority === "high")
 
   return (
     <div className="min-h-screen bg-background p-8">
@@ -117,7 +141,7 @@ export default function CoachPanel() {
                       : "bg-secondary/50 text-foreground border border-border/50 rounded-bl-none"
                   }`}
                 >
-                  <p className="text-sm">{message.text}</p>
+                  <p className="text-sm whitespace-pre-wrap">{message.text}</p>
                   {isMounted && (
                     <p
                       className={`text-xs mt-1 ${message.sender === "user" ? "text-white/70" : "text-muted-foreground"}`}
@@ -145,6 +169,7 @@ export default function CoachPanel() {
                 </div>
               </div>
             )}
+            <div ref={messagesEndRef} />
           </div>
 
           {/* Input Area */}
@@ -177,8 +202,11 @@ export default function CoachPanel() {
             <div>
               <p className="font-semibold text-foreground text-sm mb-1">Coach Tip</p>
               <p className="text-sm text-muted-foreground">
-                You're doing great! Try scheduling your most important tasks during your peak focus hours (usually 9-11
-                AM).
+                {completedCount === totalTasks && totalTasks > 0
+                  ? "Amazing! You've completed all your tasks today. Great work! 🎉"
+                  : highPriorityTasks.length > 0
+                    ? `You have ${highPriorityTasks.length} high-priority task${highPriorityTasks.length > 1 ? "s" : ""} remaining. Consider tackling them during your peak focus hours (usually 9-11 AM).`
+                    : "You're doing great! Try scheduling your most important tasks during your peak focus hours (usually 9-11 AM)."}
               </p>
             </div>
           </div>

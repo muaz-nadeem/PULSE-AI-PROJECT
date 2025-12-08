@@ -10,14 +10,14 @@ if (!apiKey && typeof window !== "undefined") {
 export const genAI = apiKey ? new GoogleGenerativeAI(apiKey) : null
 
 // Get the generative model
-// Using gemini-1.5-flash-latest which is the current recommended model
-// If this doesn't work, check your API key permissions and ensure the Generative AI API is enabled
+// Using gemini-1.5-flash which is stable and widely available
 export function getGeminiModel() {
   if (!genAI) {
     throw new Error("Gemini API key is not configured. Please add NEXT_PUBLIC_GEMINI_API_KEY to your .env.local file.")
   }
-  
-  // Try gemini-1.5-flash-latest (most current and widely available)
-  return genAI.getGenerativeModel({ model: "gemini-2.5-flash" }) 
+
+  // Use gemini-1.5-flash - the stable, fast model that's widely available
+  // If you have access to gemini-2.0, you can change this to "gemini-2.0-flash-exp"
+  return genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
 }
 

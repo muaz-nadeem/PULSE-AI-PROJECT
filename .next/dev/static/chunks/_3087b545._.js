@@ -1449,6 +1449,8 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 __turbopack_context__.s([
     "authAPI",
     ()=>authAPI,
+    "extensionAPI",
+    ()=>extensionAPI,
     "focusSessionsAPI",
     ()=>focusSessionsAPI,
     "tasksAPI",
@@ -1770,6 +1772,25 @@ const focusSessionsAPI = {
         };
     }
 };
+const extensionAPI = {
+    async getAuthToken () {
+        try {
+            const { data: { session } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getSession();
+            return session?.access_token || null;
+        } catch (error) {
+            console.error("Error getting auth token:", error);
+            return null;
+        }
+    },
+    async validateToken (token) {
+        try {
+            const { data: { user }, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser(token);
+            return !error && !!user;
+        } catch (error) {
+            return false;
+        }
+    }
+};
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -1871,9 +1892,10 @@ function getGeminiModel() {
     if (!genAI) {
         throw new Error("Gemini API key is not configured. Please add NEXT_PUBLIC_GEMINI_API_KEY to your .env.local file.");
     }
-    // Try gemini-1.5-flash-latest (most current and widely available)
+    // Use gemini-1.5-flash - the stable, fast model that's widely available
+    // If you have access to gemini-2.0, you can change this to "gemini-2.0-flash-exp"
     return genAI.getGenerativeModel({
-        model: "gemini-2.5-flash"
+        model: "gemini-1.5-flash"
     });
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {

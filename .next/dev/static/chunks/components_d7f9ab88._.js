@@ -8123,6 +8123,72 @@ function BlockingSettings() {
                     fileName: "[project]/components/blocking-settings.tsx",
                     lineNumber: 88,
                     columnNumber: 9
+                }, this),
+                /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
+                    className: "p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20",
+                    children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                        className: "flex items-start gap-3",
+                        children: [
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$lucide$2d$react$2f$dist$2f$esm$2f$icons$2f$shield$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$export__default__as__Shield$3e$__["Shield"], {
+                                className: "w-6 h-6 text-blue-500 flex-shrink-0 mt-0.5"
+                            }, void 0, false, {
+                                fileName: "[project]/components/blocking-settings.tsx",
+                                lineNumber: 143,
+                                columnNumber: 13
+                            }, this),
+                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
+                                children: [
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h2", {
+                                        className: "text-xl font-bold text-foreground mb-2",
+                                        children: "Chrome Extension"
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/blocking-settings.tsx",
+                                        lineNumber: 145,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-sm text-muted-foreground mb-3",
+                                        children: "Install the PULSE AI Chrome extension to automatically block distracting websites during your scheduled study times. The extension will track your browsing and log distractions automatically."
+                                    }, void 0, false, {
+                                        fileName: "[project]/components/blocking-settings.tsx",
+                                        lineNumber: 146,
+                                        columnNumber: 15
+                                    }, this),
+                                    /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
+                                        className: "text-xs text-muted-foreground",
+                                        children: [
+                                            "To install: Load the extension from the ",
+                                            /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("code", {
+                                                className: "bg-secondary/50 px-1 py-0.5 rounded",
+                                                children: "chrome-extension"
+                                            }, void 0, false, {
+                                                fileName: "[project]/components/blocking-settings.tsx",
+                                                lineNumber: 151,
+                                                columnNumber: 57
+                                            }, this),
+                                            " folder in developer mode."
+                                        ]
+                                    }, void 0, true, {
+                                        fileName: "[project]/components/blocking-settings.tsx",
+                                        lineNumber: 150,
+                                        columnNumber: 15
+                                    }, this)
+                                ]
+                            }, void 0, true, {
+                                fileName: "[project]/components/blocking-settings.tsx",
+                                lineNumber: 144,
+                                columnNumber: 13
+                            }, this)
+                        ]
+                    }, void 0, true, {
+                        fileName: "[project]/components/blocking-settings.tsx",
+                        lineNumber: 142,
+                        columnNumber: 11
+                    }, this)
+                }, void 0, false, {
+                    fileName: "[project]/components/blocking-settings.tsx",
+                    lineNumber: 141,
+                    columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
@@ -13720,9 +13786,46 @@ function Reports() {
     _s();
     const { generateWeeklyReport, generateMonthlyReport, exportToCSV, exportToPDF, analytics, tasks, focusSessions, habits, goals, achievements } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])();
     const [reportType, setReportType] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])("weekly");
+    const [tabAnalytics, setTabAnalytics] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])([]);
+    const [loadingTabs, setLoadingTabs] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(true);
     const weeklyReport = generateWeeklyReport();
     const monthlyReport = generateMonthlyReport();
     const currentReport = reportType === "weekly" ? weeklyReport : monthlyReport;
+    // Fetch tab analytics
+    (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useEffect"])({
+        "Reports.useEffect": ()=>{
+            const fetchTabAnalytics = {
+                "Reports.useEffect.fetchTabAnalytics": async ()=>{
+                    setLoadingTabs(true);
+                    try {
+                        const today = new Date();
+                        let startDate;
+                        let endDate = today.toISOString().split("T")[0];
+                        if (reportType === "weekly") {
+                            const weekStart = new Date(today);
+                            weekStart.setDate(today.getDate() - today.getDay());
+                            startDate = weekStart.toISOString().split("T")[0];
+                        } else {
+                            const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
+                            startDate = monthStart.toISOString().split("T")[0];
+                        }
+                        const response = await fetch(`/api/extension/tabs/analytics?startDate=${startDate}&endDate=${endDate}&limit=15`);
+                        if (response.ok) {
+                            const result = await response.json();
+                            setTabAnalytics(result.data || []);
+                        }
+                    } catch (error) {
+                        console.error("Error fetching tab analytics:", error);
+                    } finally{
+                        setLoadingTabs(false);
+                    }
+                }
+            }["Reports.useEffect.fetchTabAnalytics"];
+            fetchTabAnalytics();
+        }
+    }["Reports.useEffect"], [
+        reportType
+    ]);
     const handleExportCSV = ()=>{
         const csv = exportToCSV();
         const blob = new Blob([
@@ -13762,6 +13865,33 @@ function Reports() {
             year: "numeric"
         });
     };
+    const formatTime = (seconds)=>{
+        const hours = Math.floor(seconds / 3600);
+        const minutes = Math.floor(seconds % 3600 / 60);
+        if (hours > 0) {
+            return `${hours}h ${minutes}m`;
+        }
+        return `${minutes}m`;
+    };
+    // Prepare chart data for tab analytics
+    const chartData = tabAnalytics.slice(0, 10).map((item)=>({
+            name: item.domain.length > 20 ? item.domain.substring(0, 20) + "..." : item.domain,
+            fullName: item.domain,
+            time: Math.round(item.totalTime / 60),
+            visits: item.visitCount
+        }));
+    const COLORS = [
+        "#3b82f6",
+        "#8b5cf6",
+        "#ec4899",
+        "#f59e0b",
+        "#10b981",
+        "#ef4444",
+        "#6366f1",
+        "#14b8a6",
+        "#f97316",
+        "#a855f7"
+    ];
     return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
         className: "min-h-screen bg-background p-8",
         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -13777,7 +13907,7 @@ function Reports() {
                                     children: "Reports & Export"
                                 }, void 0, false, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 60,
+                                    lineNumber: 125,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -13785,13 +13915,13 @@ function Reports() {
                                     children: "Generate and share your productivity reports"
                                 }, void 0, false, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 61,
+                                    lineNumber: 126,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/reports.tsx",
-                            lineNumber: 59,
+                            lineNumber: 124,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -13804,12 +13934,12 @@ function Reports() {
                                         className: "w-40 bg-secondary/50 border-border",
                                         children: /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectValue"], {}, void 0, false, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 66,
+                                            lineNumber: 131,
                                             columnNumber: 17
                                         }, this)
                                     }, void 0, false, {
                                         fileName: "[project]/components/reports.tsx",
-                                        lineNumber: 65,
+                                        lineNumber: 130,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectContent"], {
@@ -13819,7 +13949,7 @@ function Reports() {
                                                 children: "Weekly Report"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 69,
+                                                lineNumber: 134,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$select$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["SelectItem"], {
@@ -13827,30 +13957,30 @@ function Reports() {
                                                 children: "Monthly Report"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 70,
+                                                lineNumber: 135,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/reports.tsx",
-                                        lineNumber: 68,
+                                        lineNumber: 133,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/reports.tsx",
-                                lineNumber: 64,
+                                lineNumber: 129,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/reports.tsx",
-                            lineNumber: 63,
+                            lineNumber: 128,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/reports.tsx",
-                    lineNumber: 58,
+                    lineNumber: 123,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -13869,7 +13999,7 @@ function Reports() {
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 80,
+                                            lineNumber: 145,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -13880,13 +14010,13 @@ function Reports() {
                                             })
                                         }, void 0, false, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 83,
+                                            lineNumber: 148,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 79,
+                                    lineNumber: 144,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -13901,14 +14031,14 @@ function Reports() {
                                                     className: "w-4 h-4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 91,
+                                                    lineNumber: 156,
                                                     columnNumber: 17
                                                 }, this),
                                                 "Share"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 90,
+                                            lineNumber: 155,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -13920,14 +14050,14 @@ function Reports() {
                                                     className: "w-4 h-4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 95,
+                                                    lineNumber: 160,
                                                     columnNumber: 17
                                                 }, this),
                                                 "Export CSV"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 94,
+                                            lineNumber: 159,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -13938,26 +14068,26 @@ function Reports() {
                                                     className: "w-4 h-4"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 99,
+                                                    lineNumber: 164,
                                                     columnNumber: 17
                                                 }, this),
                                                 "Export PDF"
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 98,
+                                            lineNumber: 163,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 89,
+                                    lineNumber: 154,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/reports.tsx",
-                            lineNumber: 78,
+                            lineNumber: 143,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -13970,12 +14100,12 @@ function Reports() {
                                         children: currentReport.summary
                                     }, void 0, false, {
                                         fileName: "[project]/components/reports.tsx",
-                                        lineNumber: 109,
+                                        lineNumber: 174,
                                         columnNumber: 15
                                     }, this)
                                 }, void 0, false, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 108,
+                                    lineNumber: 173,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -13990,7 +14120,7 @@ function Reports() {
                                                         className: "w-6 h-6 text-primary"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/reports.tsx",
-                                                        lineNumber: 116,
+                                                        lineNumber: 181,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14000,7 +14130,7 @@ function Reports() {
                                                                 children: "Focus Sessions"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/reports.tsx",
-                                                                lineNumber: 118,
+                                                                lineNumber: 183,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -14008,24 +14138,24 @@ function Reports() {
                                                                 children: currentReport.data.focusSessions
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/reports.tsx",
-                                                                lineNumber: 119,
+                                                                lineNumber: 184,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/reports.tsx",
-                                                        lineNumber: 117,
+                                                        lineNumber: 182,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 115,
+                                                lineNumber: 180,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 114,
+                                            lineNumber: 179,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -14037,7 +14167,7 @@ function Reports() {
                                                         className: "w-6 h-6 text-accent"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/reports.tsx",
-                                                        lineNumber: 126,
+                                                        lineNumber: 191,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14047,7 +14177,7 @@ function Reports() {
                                                                 children: "Focus Time"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/reports.tsx",
-                                                                lineNumber: 128,
+                                                                lineNumber: 193,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -14055,24 +14185,24 @@ function Reports() {
                                                                 children: reportType === "weekly" ? `${currentReport.data.focusTime} min` : `${currentReport.data.focusTime} hrs`
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/reports.tsx",
-                                                                lineNumber: 129,
+                                                                lineNumber: 194,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/reports.tsx",
-                                                        lineNumber: 127,
+                                                        lineNumber: 192,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 125,
+                                                lineNumber: 190,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 124,
+                                            lineNumber: 189,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -14084,7 +14214,7 @@ function Reports() {
                                                         className: "w-6 h-6 text-muted-foreground"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/reports.tsx",
-                                                        lineNumber: 138,
+                                                        lineNumber: 203,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14094,7 +14224,7 @@ function Reports() {
                                                                 children: "Tasks Completed"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/reports.tsx",
-                                                                lineNumber: 140,
+                                                                lineNumber: 205,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -14106,24 +14236,24 @@ function Reports() {
                                                                 ]
                                                             }, void 0, true, {
                                                                 fileName: "[project]/components/reports.tsx",
-                                                                lineNumber: 141,
+                                                                lineNumber: 206,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/reports.tsx",
-                                                        lineNumber: 139,
+                                                        lineNumber: 204,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 137,
+                                                lineNumber: 202,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 136,
+                                            lineNumber: 201,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -14135,7 +14265,7 @@ function Reports() {
                                                         className: "w-6 h-6 text-muted-foreground"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/reports.tsx",
-                                                        lineNumber: 150,
+                                                        lineNumber: 215,
                                                         columnNumber: 19
                                                     }, this),
                                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14145,7 +14275,7 @@ function Reports() {
                                                                 children: reportType === "weekly" ? "Active Habits" : "Goals Completed"
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/reports.tsx",
-                                                                lineNumber: 152,
+                                                                lineNumber: 217,
                                                                 columnNumber: 21
                                                             }, this),
                                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -14153,30 +14283,30 @@ function Reports() {
                                                                 children: reportType === "weekly" ? currentReport.data.habitsActive : currentReport.data.goalsCompleted
                                                             }, void 0, false, {
                                                                 fileName: "[project]/components/reports.tsx",
-                                                                lineNumber: 155,
+                                                                lineNumber: 220,
                                                                 columnNumber: 21
                                                             }, this)
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/reports.tsx",
-                                                        lineNumber: 151,
+                                                        lineNumber: 216,
                                                         columnNumber: 19
                                                     }, this)
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 149,
+                                                lineNumber: 214,
                                                 columnNumber: 17
                                             }, this)
                                         }, void 0, false, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 148,
+                                            lineNumber: 213,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 113,
+                                    lineNumber: 178,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14190,7 +14320,7 @@ function Reports() {
                                                     children: "Focus Sessions"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 167,
+                                                    lineNumber: 232,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14204,7 +14334,7 @@ function Reports() {
                                                                     children: "Total Sessions"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 170,
+                                                                    lineNumber: 235,
                                                                     columnNumber: 21
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -14212,13 +14342,13 @@ function Reports() {
                                                                     children: currentReport.data.focusSessions
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 171,
+                                                                    lineNumber: 236,
                                                                     columnNumber: 21
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/reports.tsx",
-                                                            lineNumber: 169,
+                                                            lineNumber: 234,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14229,7 +14359,7 @@ function Reports() {
                                                                     children: "Total Time"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 174,
+                                                                    lineNumber: 239,
                                                                     columnNumber: 21
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -14237,13 +14367,13 @@ function Reports() {
                                                                     children: reportType === "weekly" ? `${currentReport.data.focusTime} minutes` : `${currentReport.data.focusTime} hours`
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 175,
+                                                                    lineNumber: 240,
                                                                     columnNumber: 21
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/reports.tsx",
-                                                            lineNumber: 173,
+                                                            lineNumber: 238,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14254,7 +14384,7 @@ function Reports() {
                                                                     children: "Average per Day"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 180,
+                                                                    lineNumber: 245,
                                                                     columnNumber: 21
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -14262,25 +14392,25 @@ function Reports() {
                                                                     children: reportType === "weekly" ? `${Math.round(currentReport.data.focusSessions / 7)} sessions` : `${Math.round(currentReport.data.focusSessions / 30)} sessions`
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 181,
+                                                                    lineNumber: 246,
                                                                     columnNumber: 21
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/reports.tsx",
-                                                            lineNumber: 179,
+                                                            lineNumber: 244,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 168,
+                                                    lineNumber: 233,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 166,
+                                            lineNumber: 231,
                                             columnNumber: 15
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -14291,7 +14421,7 @@ function Reports() {
                                                     children: "Tasks"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 192,
+                                                    lineNumber: 257,
                                                     columnNumber: 17
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14305,7 +14435,7 @@ function Reports() {
                                                                     children: "Completed"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 195,
+                                                                    lineNumber: 260,
                                                                     columnNumber: 21
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -14313,13 +14443,13 @@ function Reports() {
                                                                     children: currentReport.data.tasksCompleted
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 196,
+                                                                    lineNumber: 261,
                                                                     columnNumber: 21
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/reports.tsx",
-                                                            lineNumber: 194,
+                                                            lineNumber: 259,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14330,7 +14460,7 @@ function Reports() {
                                                                     children: "Total Created"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 199,
+                                                                    lineNumber: 264,
                                                                     columnNumber: 21
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -14338,13 +14468,13 @@ function Reports() {
                                                                     children: currentReport.data.tasksTotal
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 200,
+                                                                    lineNumber: 265,
                                                                     columnNumber: 21
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/reports.tsx",
-                                                            lineNumber: 198,
+                                                            lineNumber: 263,
                                                             columnNumber: 19
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14355,7 +14485,7 @@ function Reports() {
                                                                     children: "Completion Rate"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 203,
+                                                                    lineNumber: 268,
                                                                     columnNumber: 21
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -14366,31 +14496,31 @@ function Reports() {
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 204,
+                                                                    lineNumber: 269,
                                                                     columnNumber: 21
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/reports.tsx",
-                                                            lineNumber: 202,
+                                                            lineNumber: 267,
                                                             columnNumber: 19
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 193,
+                                                    lineNumber: 258,
                                                     columnNumber: 17
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 191,
+                                            lineNumber: 256,
                                             columnNumber: 15
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 164,
+                                    lineNumber: 229,
                                     columnNumber: 13
                                 }, this),
                                 reportType === "monthly" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14404,7 +14534,7 @@ function Reports() {
                                                     children: "Achievements"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 219,
+                                                    lineNumber: 284,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14414,7 +14544,7 @@ function Reports() {
                                                             className: "w-8 h-8 text-yellow-500"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/reports.tsx",
-                                                            lineNumber: 221,
+                                                            lineNumber: 286,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14424,7 +14554,7 @@ function Reports() {
                                                                     children: currentReport.data.achievements
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 223,
+                                                                    lineNumber: 288,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -14432,25 +14562,25 @@ function Reports() {
                                                                     children: "Achievements unlocked this month"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 224,
+                                                                    lineNumber: 289,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/reports.tsx",
-                                                            lineNumber: 222,
+                                                            lineNumber: 287,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 220,
+                                                    lineNumber: 285,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 218,
+                                            lineNumber: 283,
                                             columnNumber: 17
                                         }, this),
                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -14461,7 +14591,7 @@ function Reports() {
                                                     children: "Challenges"
                                                 }, void 0, false, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 230,
+                                                    lineNumber: 295,
                                                     columnNumber: 19
                                                 }, this),
                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14471,7 +14601,7 @@ function Reports() {
                                                             className: "w-8 h-8 text-primary"
                                                         }, void 0, false, {
                                                             fileName: "[project]/components/reports.tsx",
-                                                            lineNumber: 232,
+                                                            lineNumber: 297,
                                                             columnNumber: 21
                                                         }, this),
                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14481,7 +14611,7 @@ function Reports() {
                                                                     children: currentReport.data.challengesCompleted
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 234,
+                                                                    lineNumber: 299,
                                                                     columnNumber: 23
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -14489,43 +14619,43 @@ function Reports() {
                                                                     children: "Challenges completed this month"
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/reports.tsx",
-                                                                    lineNumber: 235,
+                                                                    lineNumber: 300,
                                                                     columnNumber: 23
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/reports.tsx",
-                                                            lineNumber: 233,
+                                                            lineNumber: 298,
                                                             columnNumber: 21
                                                         }, this)
                                                     ]
                                                 }, void 0, true, {
                                                     fileName: "[project]/components/reports.tsx",
-                                                    lineNumber: 231,
+                                                    lineNumber: 296,
                                                     columnNumber: 19
                                                 }, this)
                                             ]
                                         }, void 0, true, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 229,
+                                            lineNumber: 294,
                                             columnNumber: 17
                                         }, this)
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 217,
+                                    lineNumber: 282,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/reports.tsx",
-                            lineNumber: 106,
+                            lineNumber: 171,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/reports.tsx",
-                    lineNumber: 77,
+                    lineNumber: 142,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14540,7 +14670,7 @@ function Reports() {
                                         className: "w-8 h-8 text-primary"
                                     }, void 0, false, {
                                         fileName: "[project]/components/reports.tsx",
-                                        lineNumber: 248,
+                                        lineNumber: 313,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14550,7 +14680,7 @@ function Reports() {
                                                 children: "Total Focus Hours"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 250,
+                                                lineNumber: 315,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -14558,24 +14688,24 @@ function Reports() {
                                                 children: analytics.totalFocusHours
                                             }, void 0, false, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 251,
+                                                lineNumber: 316,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/reports.tsx",
-                                        lineNumber: 249,
+                                        lineNumber: 314,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/reports.tsx",
-                                lineNumber: 247,
+                                lineNumber: 312,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/reports.tsx",
-                            lineNumber: 246,
+                            lineNumber: 311,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -14587,7 +14717,7 @@ function Reports() {
                                         className: "w-8 h-8 text-accent"
                                     }, void 0, false, {
                                         fileName: "[project]/components/reports.tsx",
-                                        lineNumber: 258,
+                                        lineNumber: 323,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14597,7 +14727,7 @@ function Reports() {
                                                 children: "All-Time Tasks"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 260,
+                                                lineNumber: 325,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -14609,24 +14739,24 @@ function Reports() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 261,
+                                                lineNumber: 326,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/reports.tsx",
-                                        lineNumber: 259,
+                                        lineNumber: 324,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/reports.tsx",
-                                lineNumber: 257,
+                                lineNumber: 322,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/reports.tsx",
-                            lineNumber: 256,
+                            lineNumber: 321,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -14638,7 +14768,7 @@ function Reports() {
                                         className: "w-8 h-8 text-yellow-500"
                                     }, void 0, false, {
                                         fileName: "[project]/components/reports.tsx",
-                                        lineNumber: 270,
+                                        lineNumber: 335,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14648,7 +14778,7 @@ function Reports() {
                                                 children: "Achievements"
                                             }, void 0, false, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 272,
+                                                lineNumber: 337,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -14660,30 +14790,30 @@ function Reports() {
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/reports.tsx",
-                                                lineNumber: 273,
+                                                lineNumber: 338,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/reports.tsx",
-                                        lineNumber: 271,
+                                        lineNumber: 336,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/reports.tsx",
-                                lineNumber: 269,
+                                lineNumber: 334,
                                 columnNumber: 13
                             }, this)
                         }, void 0, false, {
                             fileName: "[project]/components/reports.tsx",
-                            lineNumber: 268,
+                            lineNumber: 333,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/reports.tsx",
-                    lineNumber: 245,
+                    lineNumber: 310,
                     columnNumber: 9
                 }, this),
                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -14696,14 +14826,14 @@ function Reports() {
                                     className: "w-5 h-5 text-primary"
                                 }, void 0, false, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 284,
+                                    lineNumber: 349,
                                     columnNumber: 13
                                 }, this),
                                 "Share Your Progress"
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/reports.tsx",
-                            lineNumber: 283,
+                            lineNumber: 348,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -14711,7 +14841,7 @@ function Reports() {
                             children: "Share your productivity report with accountability partners, mentors, or friends to stay motivated and track your progress together."
                         }, void 0, false, {
                             fileName: "[project]/components/reports.tsx",
-                            lineNumber: 287,
+                            lineNumber: 352,
                             columnNumber: 11
                         }, this),
                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -14726,14 +14856,14 @@ function Reports() {
                                             className: "w-4 h-4"
                                         }, void 0, false, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 293,
+                                            lineNumber: 358,
                                             columnNumber: 15
                                         }, this),
                                         "Share Report"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 292,
+                                    lineNumber: 357,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -14745,14 +14875,14 @@ function Reports() {
                                             className: "w-4 h-4"
                                         }, void 0, false, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 297,
+                                            lineNumber: 362,
                                             columnNumber: 15
                                         }, this),
                                         "Download CSV"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 296,
+                                    lineNumber: 361,
                                     columnNumber: 13
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -14764,41 +14894,41 @@ function Reports() {
                                             className: "w-4 h-4"
                                         }, void 0, false, {
                                             fileName: "[project]/components/reports.tsx",
-                                            lineNumber: 301,
+                                            lineNumber: 366,
                                             columnNumber: 15
                                         }, this),
                                         "Download PDF"
                                     ]
                                 }, void 0, true, {
                                     fileName: "[project]/components/reports.tsx",
-                                    lineNumber: 300,
+                                    lineNumber: 365,
                                     columnNumber: 13
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/reports.tsx",
-                            lineNumber: 291,
+                            lineNumber: 356,
                             columnNumber: 11
                         }, this)
                     ]
                 }, void 0, true, {
                     fileName: "[project]/components/reports.tsx",
-                    lineNumber: 282,
+                    lineNumber: 347,
                     columnNumber: 9
                 }, this)
             ]
         }, void 0, true, {
             fileName: "[project]/components/reports.tsx",
-            lineNumber: 56,
+            lineNumber: 121,
             columnNumber: 7
         }, this)
     }, void 0, false, {
         fileName: "[project]/components/reports.tsx",
-        lineNumber: 55,
+        lineNumber: 120,
         columnNumber: 5
     }, this);
 }
-_s(Reports, "wuZSRl+rUwPk5KEjcQshjjkxxdc=", false, function() {
+_s(Reports, "BcfXLF8CAImyDd1uImMVKweiLSs=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"]
     ];

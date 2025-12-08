@@ -3,8 +3,9 @@
     chunks: [
   "static/chunks/lib_cf5e1016._.js",
   "static/chunks/components_goals_tsx_0a3dce7d._.js",
+  "static/chunks/components_reports_tsx_e683f919._.js",
   "static/chunks/components_team-collaboration_tsx_bf395f40._.js",
-  "static/chunks/components_d7f9ab88._.js",
+  "static/chunks/components_a3d3ca04._.js",
   "static/chunks/_3087b545._.js",
   "static/chunks/node_modules_@supabase_realtime-js_dist_module_a6b8d2d8._.js",
   "static/chunks/node_modules_@supabase_storage-js_dist_module_4307daaa._.js",
@@ -14,7 +15,7 @@
   "static/chunks/node_modules_recharts_es6_11c898b3._.js",
   "static/chunks/node_modules_@radix-ui_51ba967d._.js",
   "static/chunks/node_modules_@floating-ui_1b6e7b6d._.js",
-  "static/chunks/node_modules_eee97e6f._.js"
+  "static/chunks/node_modules_a5e85318._.js"
 ],
     source: "dynamic"
 });

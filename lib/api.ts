@@ -452,3 +452,25 @@ export const focusSessionsAPI = {
     }
   },
 }
+
+// Extension API helpers
+export const extensionAPI = {
+  async getAuthToken(): Promise<string | null> {
+    try {
+      const { data: { session } } = await supabase.auth.getSession()
+      return session?.access_token || null
+    } catch (error) {
+      console.error("Error getting auth token:", error)
+      return null
+    }
+  },
+
+  async validateToken(token: string): Promise<boolean> {
+    try {
+      const { data: { user }, error } = await supabase.auth.getUser(token)
+      return !error && !!user
+    } catch (error) {
+      return false
+    }
+  },
+}

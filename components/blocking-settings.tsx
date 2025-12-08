@@ -136,6 +136,23 @@ export default function BlockingSettings() {
             </Button>
           </div>
         </Card>
+
+        {/* Chrome Extension Info */}
+        <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-blue-500/5 border-blue-500/20">
+          <div className="flex items-start gap-3">
+            <Shield className="w-6 h-6 text-blue-500 flex-shrink-0 mt-0.5" />
+            <div>
+              <h2 className="text-xl font-bold text-foreground mb-2">Chrome Extension</h2>
+              <p className="text-sm text-muted-foreground mb-3">
+                Install the PULSE AI Chrome extension to automatically block distracting websites during your scheduled study times.
+                The extension will track your browsing and log distractions automatically.
+              </p>
+              <p className="text-xs text-muted-foreground">
+                To install: Load the extension from the <code className="bg-secondary/50 px-1 py-0.5 rounded">chrome-extension</code> folder in developer mode.
+              </p>
+            </div>
+          </div>
+        </Card>
       </div>
     </div>
   )

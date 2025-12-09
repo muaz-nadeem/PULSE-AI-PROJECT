@@ -5,6 +5,7 @@ import { useStore } from "@/lib/store"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
+import { Textarea } from "@/components/ui/textarea"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Flag, X, Plus, Calendar } from "lucide-react"
 
@@ -14,12 +15,14 @@ export default function TaskManager() {
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [formData, setFormData] = useState<{
     title: string
+    description: string
     category: string
     priority: "high" | "medium" | "low"
     dueDate: string
     focusMode: boolean
   }>({
     title: "",
+    description: "",
     category: "Work",
     priority: "medium",
     dueDate: new Date().toISOString().split("T")[0],
@@ -30,6 +33,7 @@ export default function TaskManager() {
     if (formData.title.trim()) {
       addTask({
         title: formData.title,
+        description: formData.description?.trim() || "",
         priority: formData.priority,
         timeEstimate: 1, // Default time estimate
         category: formData.category,
@@ -38,6 +42,7 @@ export default function TaskManager() {
       })
       setFormData({
         title: "",
+        description: "",
         category: "Work",
         priority: "medium",
         dueDate: new Date().toISOString().split("T")[0],
@@ -217,7 +222,7 @@ export default function TaskManager() {
                       variant="ghost"
                       size="icon"
                       onClick={() => deleteTask(task.id)}
-                      className="h-6 w-6 text-muted-foreground hover:text-red-500 flex-shrink-0"
+                    className="h-6 w-6 text-muted-foreground hover:text-red-500 shrink-0"
                     >
                       <X className="w-4 h-4" />
                     </Button>
@@ -229,7 +234,7 @@ export default function TaskManager() {
 
           {/* Add Task Dialog */}
           {showAddTask && (
-            <Card className="p-6 bg-card border-border border-accent">
+            <Card className="p-6 bg-card border-border">
               <h3 className="text-lg font-bold text-foreground mb-4">Add New Task</h3>
               <div className="space-y-4">
                 <div>
@@ -271,6 +276,16 @@ export default function TaskManager() {
                       ))}
                     </select>
                   </div>
+                </div>
+
+                <div>
+                  <label className="text-sm font-medium text-foreground mb-2 block">Description (optional)</label>
+                  <Textarea
+                    placeholder="Add details, steps, links, acceptance criteria, etc."
+                    value={formData.description}
+                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                    className="bg-secondary/30 border-border text-foreground min-h-[120px]"
+                  />
                 </div>
 
                 <div>

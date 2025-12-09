@@ -9,20 +9,22 @@ import { Input } from "@/components/ui/input"
 import { Plus, X } from "lucide-react"
 
 interface AddTaskDialogProps {
-  onAddTask: (task: { title: string; priority: string; timeEstimate: number }) => void
+  onAddTask: (task: { title: string; description?: string; priority: string; timeEstimate: number }) => void
 }
 
 export default function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [title, setTitle] = useState("")
+  const [description, setDescription] = useState("")
   const [priority, setPriority] = useState("medium")
   const [timeEstimate, setTimeEstimate] = useState(1)
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (title.trim()) {
-      onAddTask({ title, priority, timeEstimate })
+      onAddTask({ title, description: description.trim() || undefined, priority, timeEstimate })
       setTitle("")
+      setDescription("")
       setPriority("medium")
       setTimeEstimate(1)
       setIsOpen(false)
@@ -53,9 +55,19 @@ export default function AddTaskDialog({ onAddTask }: AddTaskDialogProps) {
           <Input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="Enter task description"
+            placeholder="Enter task title"
             className="bg-input border-border text-foreground placeholder:text-muted-foreground"
             autoFocus
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-foreground mb-2">Description (optional)</label>
+          <Textarea
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="Add details, links, or requirements"
+            className="bg-input border-border text-foreground placeholder:text-muted-foreground min-h-[90px]"
           />
         </div>
 

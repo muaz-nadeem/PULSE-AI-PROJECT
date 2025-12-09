@@ -5,7 +5,7 @@ import { updateUserAIProfile, getUserAIProfile } from '@/lib/services/personaliz
 import { generateScheduleWithFallback } from '@/lib/ai/schedule-generator';
 import { getRecentAggregates } from '@/lib/services/aggregation-service';
 import { logAIEvent, logAIError } from '@/lib/ai/logger';
-import type { ScheduleContext, Task, Goal } from '@/lib/ai/types';
+import type { ScheduleContext, Task, Goal, ScheduledHabit } from '@/lib/ai/types';
 import { getDefaultProfile } from '@/lib/ai/types';
 
 // Create a Supabase client with service role for server-side operations
@@ -228,13 +228,14 @@ async function buildScheduleContextForUser(
   user: { id: string; name: string | null; email: string }
 ): Promise<ScheduleContext> {
   // Fetch all required data in parallel
-  const [profileRes, aggregatesRes, tasksRes, goalsRes] = await Promise.all([
+  const [profileRes, aggregatesRes, tasksRes, goalsRes, habitsRes] = await Promise.all([
     supabase.from('user_ai_profiles').select('*').eq('user_id', user.id).single(),
     supabase.from('daily_aggregates').select('*').eq('user_id', user.id)
       .order('date', { ascending: false }).limit(14),
     supabase.from('tasks').select('*').eq('user_id', user.id).eq('completed', false)
       .order('priority', { ascending: true }),
     supabase.from('goals').select('*').eq('user_id', user.id).eq('status', 'active'),
+    supabase.from('habits').select('*').eq('user_id', user.id),
   ]);
 
   // Map tasks to the expected format
@@ -265,6 +266,21 @@ async function buildScheduleContextForUser(
     color: g.color,
   }));
 
+  // Map habits to ScheduledHabit format for AI scheduling
+  const activeHabits: ScheduledHabit[] = (habitsRes.data || [])
+    .filter((h: any) => h.auto_schedule !== false) // Include habits that should be scheduled
+    .map((h: any) => ({
+      id: h.id,
+      name: h.name,
+      description: h.description || undefined,
+      frequency: h.frequency as 'daily' | 'weekly',
+      preferredTime: h.preferred_time || undefined,
+      duration: h.duration || 15,
+      autoSchedule: h.auto_schedule !== false,
+      category: h.category || undefined,
+      currentStreak: h.current_streak || 0,
+    }));
+
   // Get profile or use defaults
   const profile = profileRes.data || {
     ...getDefaultProfile(),
@@ -283,6 +299,7 @@ async function buildScheduleContextForUser(
     recentAggregates: (aggregatesRes.data || []) as any[],
     todaysTasks: tasks,
     activeGoals: goals,
+    activeHabits,
     currentTime: new Date().toTimeString().slice(0, 5),
   };
 }

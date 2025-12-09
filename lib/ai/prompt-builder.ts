@@ -1,11 +1,11 @@
-import type { ScheduleContext, Task, Goal, UserAIProfile, DailyAggregate } from './types';
+import type { ScheduleContext, Task, Goal, UserAIProfile, DailyAggregate, ScheduledHabit } from './types';
 
 /**
  * Builds a prompt for generating a daily schedule using Gemini.
- * Includes user profile, recent performance data, and current tasks.
+ * Includes user profile, recent performance data, current tasks, and habits.
  */
 export function buildSchedulePrompt(context: ScheduleContext): string {
-  const { user, profile, recentAggregates, todaysTasks, activeGoals } = context;
+  const { user, profile, recentAggregates, todaysTasks, activeGoals, activeHabits = [] } = context;
 
   // Compute summary stats from recent aggregates
   const avgFocusTime = recentAggregates.length > 0
@@ -60,6 +60,20 @@ ${sortedTasks.length === 0 ? 'No tasks scheduled yet. Suggest a productive day s
 ${activeGoals.slice(0, 5).map(g => `- ${g.title} (${g.progress}% complete)${g.targetDate ? ` - Target: ${g.targetDate}` : ''}`).join('\n')}
 ${activeGoals.length === 0 ? 'No active goals set.' : ''}
 
+**Daily Habits to Schedule (${activeHabits.length} total):**
+${activeHabits.length > 0 ? activeHabits.map(h => {
+  const timeLabel = h.preferredTime === 'morning' ? 'morning (6-11am)' 
+    : h.preferredTime === 'afternoon' ? 'afternoon (12-5pm)'
+    : h.preferredTime === 'evening' ? 'evening (6-10pm)'
+    : h.preferredTime || 'flexible';
+  const categoryEmoji = h.category === 'health' ? '💪' 
+    : h.category === 'learning' ? '📚'
+    : h.category === 'mindfulness' ? '🧘'
+    : h.category === 'productivity' ? '⚡'
+    : h.category === 'social' ? '👥' : '✨';
+  return `- ${categoryEmoji} ${h.name} (${h.duration || 15}min, preferred: ${timeLabel}, streak: ${h.currentStreak} days) [habitId: ${h.id}]`;
+}).join('\n') : 'No habits to schedule today.'}
+
 **Current Time:** ${context.currentTime}
 
 **Instructions:**
@@ -70,6 +84,12 @@ ${activeGoals.length === 0 ? 'No active goals set.' : ''}
 5. Keep focus blocks around ${profile.optimal_focus_duration} minutes
 6. Leave some buffer time between tasks
 7. Consider task due dates when prioritizing
+8. **IMPORTANT: Schedule ALL habits at their preferred times:**
+   - Morning habits (6am-11am): Schedule early in the day before deep work
+   - Afternoon habits (12pm-5pm): Schedule during lunch or mid-afternoon breaks
+   - Evening habits (6pm-10pm): Schedule toward end of day as wind-down activities
+   - Place habits in natural gaps between tasks when possible
+   - Habit completion builds momentum - schedule them strategically to boost productivity
 
 Return a JSON object with this exact structure:
 {
@@ -80,18 +100,20 @@ Return a JSON object with this exact structure:
       "task": "<task description>",
       "priority": "high" | "medium" | "low",
       "taskId": "<task id if matching a user task, or null>",
-      "type": "work" | "break" | "meeting"
+      "habitId": "<habit id if this is a habit, or null>",
+      "type": "work" | "break" | "meeting" | "habit"
     }
   ],
   "explanation": "<2-3 sentence personalized explanation of why this schedule is optimized for the user>",
   "reasoning": {
     "focusHours": ["<hours where deep work is scheduled>"],
     "breakStrategy": "<brief explanation of break placement>",
-    "prioritization": "<brief explanation of task order>"
+    "prioritization": "<brief explanation of task order>",
+    "habitPlacement": "<brief explanation of where habits are scheduled and why>"
   }
 }
 
-Important: Ensure the JSON is valid and parseable.`;
+Important: Ensure the JSON is valid and parseable. Include ALL habits in the schedule with type "habit" and their corresponding habitId.`;
 }
 
 /**

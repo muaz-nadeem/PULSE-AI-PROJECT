@@ -1,5 +1,20 @@
 // AI System TypeScript Types
 
+// Import shared types from domain layer
+import type {
+  Task,
+  Goal,
+  Milestone,
+  ScheduleItem as DomainScheduleItem,
+} from '../domain'
+
+// Re-export domain types for convenience
+export type { Task, Goal, Milestone }
+
+// =============================================================================
+// Gemini API Types
+// =============================================================================
+
 export interface GeminiMessage {
   role: 'user' | 'model';
   parts: string;
@@ -13,13 +28,18 @@ export interface GeminiResponse {
   };
 }
 
-export interface ScheduleItem {
-  time: string; // HH:MM format
-  duration: number; // minutes
-  task: string;
-  priority: 'high' | 'medium' | 'low';
-  taskId?: string;
-  type: 'work' | 'break' | 'meeting';
+// =============================================================================
+// Schedule Types (AI-specific extensions)
+// =============================================================================
+
+/**
+ * Extended ScheduleItem with required type field for AI scheduling.
+ * The base domain ScheduleItem has optional type, but AI-generated schedules
+ * always specify the type.
+ */
+export interface ScheduleItem extends Omit<DomainScheduleItem, 'type'> {
+  habitId?: string; // reference to habit if type is 'habit'
+  type: 'work' | 'break' | 'meeting' | 'habit';
 }
 
 export interface AISchedule {
@@ -34,6 +54,10 @@ export interface AISchedule {
   modelVersion: string;
   generatedAt: Date;
 }
+
+// =============================================================================
+// Daily Aggregates (for AI analysis)
+// =============================================================================
 
 export interface DailyAggregate {
   id: string;
@@ -56,6 +80,10 @@ export interface DailyAggregate {
   updated_at: string;
 }
 
+// =============================================================================
+// User AI Profile (persisted profile for personalization)
+// =============================================================================
+
 export interface UserAIProfile {
   id: string;
   user_id: string;
@@ -74,6 +102,10 @@ export interface UserAIProfile {
   created_at: string;
   updated_at: string;
 }
+
+// =============================================================================
+// AI Plan (persisted plan)
+// =============================================================================
 
 export interface AIPlan {
   id: string;
@@ -94,6 +126,10 @@ export interface AIPlan {
   updated_at: string;
 }
 
+// =============================================================================
+// Plan Feedback
+// =============================================================================
+
 export interface PlanFeedbackEvent {
   id: string;
   plan_id: string;
@@ -102,6 +138,10 @@ export interface PlanFeedbackEvent {
   event_data: Record<string, unknown> | null;
   created_at: string;
 }
+
+// =============================================================================
+// Chat Types
+// =============================================================================
 
 export interface ChatMessage {
   id: string;
@@ -112,6 +152,10 @@ export interface ChatMessage {
   created_at: string;
 }
 
+// =============================================================================
+// Schedule Context (for AI plan generation)
+// =============================================================================
+
 export interface ScheduleContext {
   user: {
     name: string;
@@ -121,47 +165,30 @@ export interface ScheduleContext {
   recentAggregates: DailyAggregate[];
   todaysTasks: Task[];
   activeGoals: Goal[];
+  activeHabits: ScheduledHabit[]; // habits that should be scheduled today
   currentTime: string;
 }
 
-// Re-export types from store for convenience
-export interface Task {
+/**
+ * Habit type for AI scheduling.
+ * Subset of full Habit with only fields needed for schedule generation.
+ */
+export interface ScheduledHabit {
   id: string;
-  title: string;
+  name: string;
   description?: string;
-  priority: 'high' | 'medium' | 'low';
-  timeEstimate: number;
-  completed: boolean;
-  createdAt: Date;
-  category?: string;
-  dueDate?: string;
-  focusMode?: boolean;
+  frequency: 'daily' | 'weekly';
+  preferredTime?: 'morning' | 'afternoon' | 'evening' | string;
+  duration?: number; // minutes
+  autoSchedule?: boolean;
+  category?: 'health' | 'learning' | 'mindfulness' | 'productivity' | 'social' | 'other';
+  currentStreak: number;
 }
 
-export interface Goal {
-  id: string;
-  title: string;
-  description?: string;
-  category: string;
-  targetDate?: string;
-  createdAt: Date;
-  milestones: Milestone[];
-  progress: number;
-  status: 'active' | 'completed' | 'paused';
-  color: string;
-}
-
-export interface Milestone {
-  id: string;
-  title: string;
-  description?: string;
-  completed: boolean;
-  dueDate?: string;
-  completedDate?: string;
-  order: number;
-}
-
+// =============================================================================
 // AI Config
+// =============================================================================
+
 export interface AIConfig {
   featuresEnabled: boolean;
   dailyBrainEnabled: boolean;
@@ -174,7 +201,13 @@ export const aiConfig: AIConfig = {
   coachEnabled: process.env.AI_COACH_ENABLED === 'true',
 };
 
-// Default profile for new users
+// =============================================================================
+// Default Profile
+// =============================================================================
+
+/**
+ * Returns default AI profile settings for new users.
+ */
 export function getDefaultProfile(): Omit<UserAIProfile, 'id' | 'user_id' | 'created_at' | 'updated_at'> {
   return {
     optimal_focus_duration: 25,
@@ -191,4 +224,3 @@ export function getDefaultProfile(): Omit<UserAIProfile, 'id' | 'user_id' | 'cre
     last_analyzed_date: null,
   };
 }
-

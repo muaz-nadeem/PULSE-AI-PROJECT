@@ -1,5 +1,11 @@
 {
   "/_global-error/page": "/_global-error",
   "/_not-found/page": "/_not-found",
+  "/api/ai/coach/route": "/api/ai/coach",
+  "/api/ai/daily-rating/route": "/api/ai/daily-rating",
+  "/api/ai/decompose-task/route": "/api/ai/decompose-task",
+  "/api/ai/energy-optimizer/route": "/api/ai/energy-optimizer",
+  "/api/ai/generate-plan/route": "/api/ai/generate-plan",
+  "/api/cron/daily-brain/route": "/api/cron/daily-brain",
   "/page": "/"
 }

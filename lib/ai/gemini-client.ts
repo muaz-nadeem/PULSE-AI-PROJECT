@@ -46,7 +46,7 @@ export async function callGemini(
   
   try {
     const model = genAI.getGenerativeModel({
-      model: 'gemini-1.5-flash', // Using flash for faster responses, can upgrade to pro
+      model: 'gemini-2.5-flash', // Using flash for faster responses, can upgrade to pro
       systemInstruction: systemInstruction,
       safetySettings,
       generationConfig: {

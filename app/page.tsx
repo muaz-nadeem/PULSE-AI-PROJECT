@@ -8,25 +8,28 @@ import { supabase } from "@/lib/supabase/client"
 import AuthWelcome from "@/components/auth-welcome"
 import OnboardingFlow from "@/components/onboarding-flow"
 import Dashboard from "@/components/dashboard"
-import DayPlanner from "@/components/day-planner"
+import { DayPlanner } from "@/src/features/scheduler"
 import AnalyticsDashboard from "@/components/analytics-dashboard"
 import SettingsPage from "@/components/settings-page"
-import CoachPanel from "@/components/coach-panel"
+import { CoachPanel } from "@/src/features/scheduler"
 import Navigation from "@/components/navigation"
 import TaskManager from "@/components/task-manager"
 import MoodTracker from "@/components/mood-tracker"
 import AppHeader from "@/components/app-header"
 import BlockingSettings from "@/components/blocking-settings"
-import HabitTracker from "@/components/habit-tracker"
+
 import Goals from "@/components/goals"
 import DistractionLog from "@/components/distraction-log"
-import Challenges from "@/components/challenges"
-import TimeBlockCalendar from "@/components/time-block-calendar"
+
+
 import FocusSounds from "@/components/focus-sounds"
 import Reports from "@/components/reports"
-import TeamCollaboration from "@/components/team-collaboration"
+
 import SmartNotifications from "@/components/smart-notifications"
 import VoiceCommands from "@/components/voice-commands"
+import EnergyTracker from "@/components/energy-tracker"
+
+import TaskDecomposer from "@/components/task-decomposer"
 
 export default function Home() {
   // ALL HOOKS MUST BE CALLED AT THE TOP - BEFORE ANY CONDITIONAL RETURNS
@@ -38,14 +41,14 @@ export default function Home() {
   // Check if user is authenticated on mount
   useEffect(() => {
     let isMounted = true
-    
+
     const checkAuth = async () => {
       setIsCheckingAuth(true)
-      
+
       try {
         // Check Supabase session
         const { data: { session }, error: sessionError } = await supabase.auth.getSession()
-        
+
         if (sessionError || !session) {
           // No session - show login
           if (isMounted) {
@@ -93,13 +96,13 @@ export default function Home() {
         }
       }
     }
-    
+
     checkAuth()
-    
+
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (!isMounted) return
-      
+
       if (event === 'SIGNED_OUT' || !session) {
         setAuth(false, "")
         setIsOnboarded(false)
@@ -107,7 +110,7 @@ export default function Home() {
         checkAuth()
       }
     })
-    
+
     // Cleanup function
     return () => {
       isMounted = false
@@ -181,22 +184,25 @@ export default function Home() {
         <div className="flex-1 overflow-auto">
           {currentPage === "dashboard" && <Dashboard />}
           {currentPage === "tasks" && <TaskManager />}
-          {currentPage === "habits" && <HabitTracker />}
+
           {currentPage === "goals" && <Goals />}
           {currentPage === "mood" && <MoodTracker />}
           {currentPage === "planner" && <DayPlanner />}
-          {currentPage === "timeblocks" && <TimeBlockCalendar />}
+
           {currentPage === "analytics" && <AnalyticsDashboard />}
           {currentPage === "distractions" && <DistractionLog />}
-          {currentPage === "challenges" && <Challenges />}
+
           {currentPage === "sounds" && <FocusSounds />}
           {currentPage === "reports" && <Reports />}
-          {currentPage === "team" && <TeamCollaboration />}
+
           {currentPage === "notifications" && <SmartNotifications />}
           {currentPage === "voice" && <VoiceCommands />}
           {currentPage === "blocking" && <BlockingSettings />}
           {currentPage === "settings" && <SettingsPage />}
           {currentPage === "coach" && <CoachPanel />}
+          {currentPage === "energy" && <EnergyTracker />}
+
+          {currentPage === "decomposer" && <TaskDecomposer />}
         </div>
       </main>
     </div>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from "react"
 import { useStore } from "@/lib/store"
+import { useFocus } from "@/lib/hooks"
 import { Button } from "@/components/ui/button"
 
 interface FocusSessionProps {
@@ -10,7 +11,8 @@ interface FocusSessionProps {
 }
 
 export default function FocusSession({ fullScreen = false, onExit }: FocusSessionProps) {
-  const { addFocusSession, userPreferences } = useStore()
+  const { addFocusSession } = useFocus()
+  const { userPreferences } = useStore()
   const focusDuration = userPreferences.focusDuration || 25
   const [isActive, setIsActive] = useState(false)
   const [seconds, setSeconds] = useState(focusDuration * 60)
@@ -45,7 +47,7 @@ export default function FocusSession({ fullScreen = false, onExit }: FocusSessio
       const audio = new Audio(
         "data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAAB9AAACABAAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBg==",
       )
-      audio.play().catch(() => {})
+      audio.play().catch(() => { })
     }
 
     return () => clearInterval(interval)

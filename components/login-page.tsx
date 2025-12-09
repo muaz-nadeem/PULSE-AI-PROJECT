@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useStore } from "@/lib/store"
-import { authAPI } from "@/lib/api"
+import { authService } from "@/lib/services"
 import { Button } from "@/components/ui/button"
 import { Mail, Lock, ArrowRight, Eye, EyeOff } from "lucide-react"
 
@@ -47,7 +47,10 @@ export default function LoginPage({ onSwitchToSignup }: LoginPageProps) {
 
     setIsLoading(true)
     try {
-      await authAPI.login(formData.email, formData.password)
+      const result = await authService.login({ email: formData.email, password: formData.password })
+      if (result.error) {
+        throw new Error(result.error)
+      }
       // Supabase handles session automatically, just set auth state
       setAuth(true, formData.email)
       // Small delay to ensure state is set, then navigate

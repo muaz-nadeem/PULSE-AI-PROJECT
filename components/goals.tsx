@@ -1,7 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { useStore } from "@/lib/store"
+import { useGoalStore } from "@/lib/store/slices/goal-slice"
+import { useTaskStore } from "@/lib/store/slices/task-slice"
+
+import { generateGoalSuggestions } from "@/lib/domain"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -40,10 +43,16 @@ export default function Goals() {
     updateMilestone,
     deleteMilestone,
     toggleMilestone,
-    getAISuggestions,
-    tasks,
-    habits,
-  } = useStore()
+  } = useGoalStore()
+  const { tasks } = useTaskStore()
+
+
+  // Use domain function for AI suggestions
+  const getAISuggestions = (goalId: string): string[] => {
+    const goal = goals.find(g => g.id === goalId)
+    if (!goal) return []
+    return generateGoalSuggestions(goal, tasks)
+  }
 
   const [showAddForm, setShowAddForm] = useState(false)
   const [selectedGoal, setSelectedGoal] = useState<string | null>(null)
@@ -236,9 +245,8 @@ export default function Goals() {
                       <button
                         key={color.value}
                         onClick={() => setNewGoal({ ...newGoal, color: color.value })}
-                        className={`w-8 h-8 rounded-full ${color.value} border-2 ${
-                          newGoal.color === color.value ? "border-foreground scale-110" : "border-transparent"
-                        } transition-all`}
+                        className={`w-8 h-8 rounded-full ${color.value} border-2 ${newGoal.color === color.value ? "border-foreground scale-110" : "border-transparent"
+                          } transition-all`}
                       />
                     ))}
                   </div>
@@ -424,11 +432,10 @@ export default function Goals() {
                         goal.milestones.map((milestone) => (
                           <div
                             key={milestone.id}
-                            className={`flex items-start gap-3 p-3 rounded-lg border ${
-                              milestone.completed
-                                ? "bg-secondary/20 border-border/50 opacity-75"
-                                : "bg-secondary/30 border-border hover:border-primary/50"
-                            }`}
+                            className={`flex items-start gap-3 p-3 rounded-lg border ${milestone.completed
+                              ? "bg-secondary/20 border-border/50 opacity-75"
+                              : "bg-secondary/30 border-border hover:border-primary/50"
+                              }`}
                           >
                             <Checkbox
                               checked={milestone.completed}
@@ -545,27 +552,21 @@ export default function Goals() {
         )}
 
         {/* Integration Info */}
-        {(tasks.length > 0 || habits.length > 0) && (
+        {tasks.length > 0 && (
           <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
             <h3 className="font-bold text-foreground mb-3 flex items-center gap-2">
               <Target className="w-5 h-5 text-primary" />
               Connect Goals with Daily Actions
             </h3>
             <p className="text-sm text-muted-foreground mb-2">
-              Link your daily tasks and habits to your goals. Each completed task and maintained habit brings you
+              Link your daily tasks to your goals. Each completed task brings you
               closer to achieving your milestones!
             </p>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+            <div className="mt-4">
               <div className="p-3 bg-card/50 rounded-lg border border-border/50">
                 <p className="text-xs text-muted-foreground mb-1">Tasks Completed</p>
                 <p className="text-lg font-semibold text-foreground">
                   {tasks.filter((t) => t.completed).length} / {tasks.length}
-                </p>
-              </div>
-              <div className="p-3 bg-card/50 rounded-lg border border-border/50">
-                <p className="text-xs text-muted-foreground mb-1">Active Habits</p>
-                <p className="text-lg font-semibold text-foreground">
-                  {habits.filter((h) => h.currentStreak > 0).length} / {habits.length}
                 </p>
               </div>
             </div>

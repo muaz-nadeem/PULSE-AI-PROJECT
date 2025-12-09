@@ -124,6 +124,7 @@ const useStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_module
         goals: [],
         currentSchedule: [],
         acceptedSchedules: [],
+        scheduleSyncedFromTimeBlocks: false,
         timeBlocks: [],
         soundPresets: [
             {
@@ -174,6 +175,11 @@ const useStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_module
             isAuthenticated: false,
             userEmail: ""
         },
+        // AI Features - Initial State
+        currentAIPlan: null,
+        userAIProfile: null,
+        aiPlanLoading: false,
+        aiPlanError: null,
         addTask: async (task)=>{
             try {
                 const api = await __turbopack_context__.A("[project]/lib/api.ts [app-client] (ecmascript, async loader)");
@@ -874,8 +880,12 @@ const useStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_module
                 }
             ];
         },
-        setCurrentSchedule: (schedule)=>set({
-                currentSchedule: schedule
+        setCurrentSchedule: (schedule, fromTimeBlocks = false)=>set({
+                currentSchedule: schedule,
+                scheduleSyncedFromTimeBlocks: fromTimeBlocks
+            }),
+        clearTimeBlockSync: ()=>set({
+                scheduleSyncedFromTimeBlocks: false
             }),
         acceptSchedule: ()=>set((state)=>({
                     acceptedSchedules: [
@@ -1207,6 +1217,7 @@ For detailed analytics, visit the Analytics dashboard.
         checkSmartNotifications: ()=>{
             const state = get();
             const now = new Date();
+            const todayStr = now.toISOString().split("T")[0];
             const lastSession = state.focusSessions[state.focusSessions.length - 1];
             // Break suggestion - if last session was more than 25 minutes ago and no break taken
             if (lastSession) {
@@ -1259,6 +1270,111 @@ For detailed analytics, visit the Analytics dashboard.
                     actionUrl: "/tasks"
                 });
             }
+            // Habit reminders - check for habits due soon or overdue
+            const currentHour = now.getHours();
+            const currentMinute = now.getMinutes();
+            state.habits.forEach((habit)=>{
+                // Skip if not auto-scheduled or already completed today
+                if (habit.autoSchedule === false) return;
+                if (habit.completedDates.includes(todayStr)) return;
+                // Determine if habit is due now based on preferred time
+                let isDue = false;
+                let isOverdue = false;
+                let timeWindowMessage = "";
+                if (habit.scheduledTime) {
+                    // Use AI-scheduled time
+                    const [schedHour, schedMinute] = habit.scheduledTime.split(":").map(Number);
+                    const minutesUntil = schedHour * 60 + schedMinute - (currentHour * 60 + currentMinute);
+                    if (minutesUntil <= 5 && minutesUntil >= 0) {
+                        isDue = true;
+                        timeWindowMessage = "starting now";
+                    } else if (minutesUntil < 0 && minutesUntil > -60) {
+                        isOverdue = true;
+                        timeWindowMessage = `${Math.abs(minutesUntil)} min overdue`;
+                    }
+                } else if (habit.preferredTime) {
+                    // Use preferred time windows
+                    const timeWindows = {
+                        morning: {
+                            start: 6,
+                            end: 11,
+                            label: "morning"
+                        },
+                        afternoon: {
+                            start: 12,
+                            end: 17,
+                            label: "afternoon"
+                        },
+                        evening: {
+                            start: 18,
+                            end: 22,
+                            label: "evening"
+                        }
+                    };
+                    const window = timeWindows[habit.preferredTime];
+                    if (window) {
+                        // Remind 5 minutes before window starts
+                        if (currentHour === window.start && currentMinute <= 5) {
+                            isDue = true;
+                            timeWindowMessage = `${window.label} window starting`;
+                        } else if (currentHour >= window.end) {
+                            isOverdue = true;
+                            timeWindowMessage = `${window.label} window passed`;
+                        }
+                    }
+                }
+                // Check if we already sent a notification for this habit recently
+                const recentHabitNotification = state.notifications.some((n)=>{
+                    const notifTime = new Date(n.timestamp).getTime();
+                    return n.title.includes(habit.name) && now.getTime() - notifTime < 30 * 60 * 1000 // Within last 30 minutes
+                    ;
+                });
+                if (isDue && !recentHabitNotification) {
+                    const categoryEmoji = habit.category === "health" ? "💪" : habit.category === "learning" ? "📚" : habit.category === "mindfulness" ? "🧘" : habit.category === "productivity" ? "⚡" : habit.category === "social" ? "👥" : "✨";
+                    state.addNotification({
+                        type: "reminder",
+                        title: `${categoryEmoji} Time for ${habit.name}!`,
+                        message: habit.currentStreak > 0 ? `Keep your ${habit.currentStreak}-day streak going! (${timeWindowMessage})` : `${habit.duration || 15} minutes - ${timeWindowMessage}`,
+                        actionUrl: "/habits"
+                    });
+                } else if (isOverdue && !recentHabitNotification) {
+                    state.addNotification({
+                        type: "suggestion",
+                        title: `Don't forget: ${habit.name}`,
+                        message: habit.currentStreak > 0 ? `⚠️ Your ${habit.currentStreak}-day streak is at risk! (${timeWindowMessage})` : `You still have time to complete this habit. (${timeWindowMessage})`,
+                        actionUrl: "/habits"
+                    });
+                }
+            });
+            // Celebrate habit completion streaks
+            state.habits.forEach((habit)=>{
+                const justCompleted = habit.completedDates.includes(todayStr);
+                const streakMilestones = [
+                    7,
+                    14,
+                    21,
+                    30,
+                    60,
+                    90,
+                    100,
+                    365
+                ];
+                if (justCompleted && streakMilestones.includes(habit.currentStreak)) {
+                    const recentStreakNotif = state.notifications.some((n)=>{
+                        const notifTime = new Date(n.timestamp).getTime();
+                        return n.title.includes("Streak") && n.title.includes(habit.name) && now.getTime() - notifTime < 24 * 60 * 60 * 1000 // Within last 24 hours
+                        ;
+                    });
+                    if (!recentStreakNotif) {
+                        state.addNotification({
+                            type: "celebration",
+                            title: `🔥 ${habit.currentStreak}-Day Streak!`,
+                            message: `Amazing! You've maintained "${habit.name}" for ${habit.currentStreak} days in a row!`,
+                            actionUrl: "/habits"
+                        });
+                    }
+                }
+            });
         },
         setVoiceActive: (active)=>set({
                 isVoiceActive: active
@@ -1340,8 +1456,65 @@ For detailed analytics, visit the Analytics dashboard.
                 distractions: [],
                 challenges: [],
                 timeBlocks: [],
-                notifications: []
+                notifications: [],
+                currentAIPlan: null,
+                userAIProfile: null,
+                aiPlanLoading: false,
+                aiPlanError: null
             });
+        },
+        // AI Features - Actions
+        setCurrentAIPlan: (plan)=>set({
+                currentAIPlan: plan
+            }),
+        setUserAIProfile: (profile)=>set({
+                userAIProfile: profile
+            }),
+        setAIPlanLoading: (loading)=>set({
+                aiPlanLoading: loading
+            }),
+        setAIPlanError: (error)=>set({
+                aiPlanError: error
+            }),
+        acceptAIPlan: async ()=>{
+            const state = get();
+            if (!state.currentAIPlan) return;
+            try {
+                const api = await __turbopack_context__.A("[project]/lib/api.ts [app-client] (ecmascript, async loader)");
+                await api.aiAPI.acceptPlan(state.currentAIPlan.id);
+                set({
+                    currentAIPlan: {
+                        ...state.currentAIPlan,
+                        status: "accepted"
+                    }
+                });
+                // Also accept schedule to history
+                state.acceptSchedule();
+            } catch (error) {
+                console.error("Failed to accept AI plan:", error);
+                set({
+                    aiPlanError: "Failed to accept plan"
+                });
+            }
+        },
+        rejectAIPlan: async ()=>{
+            const state = get();
+            if (!state.currentAIPlan) return;
+            try {
+                const api = await __turbopack_context__.A("[project]/lib/api.ts [app-client] (ecmascript, async loader)");
+                await api.aiAPI.rejectPlan(state.currentAIPlan.id);
+                set({
+                    currentAIPlan: {
+                        ...state.currentAIPlan,
+                        status: "rejected"
+                    }
+                });
+            } catch (error) {
+                console.error("Failed to reject AI plan:", error);
+                set({
+                    aiPlanError: "Failed to reject plan"
+                });
+            }
         }
     }));
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
@@ -1356,22 +1529,10 @@ __turbopack_context__.s([
     ()=>supabase
 ]);
 var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$build$2f$polyfills$2f$process$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = /*#__PURE__*/ __turbopack_context__.i("[project]/node_modules/next/dist/build/polyfills/process.js [app-client] (ecmascript)");
-var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$supabase$2f$supabase$2d$js$2f$dist$2f$esm$2f$wrapper$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@supabase/supabase-js/dist/esm/wrapper.mjs [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$supabase$2f$ssr$2f$dist$2f$module$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__$3c$locals$3e$__ = __turbopack_context__.i("[project]/node_modules/@supabase/ssr/dist/module/index.js [app-client] (ecmascript) <locals>");
+var __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$supabase$2f$ssr$2f$dist$2f$module$2f$createBrowserClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/node_modules/@supabase/ssr/dist/module/createBrowserClient.js [app-client] (ecmascript)");
 ;
-const supabaseUrl = ("TURBOPACK compile-time value", "https://yyfbfttutejbykkeuktm.supabase.co") || "";
-const supabaseAnonKey = ("TURBOPACK compile-time value", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5ZmJmdHR1dGVqYnlra2V1a3RtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyMDU5ODcsImV4cCI6MjA4MDc4MTk4N30.sIhJws6nPUOIaHvZj2QI8JB1hE5wEE6I-WPCqwR1qgE") || "";
-const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$supabase$2f$supabase$2d$js$2f$dist$2f$esm$2f$wrapper$2e$mjs__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createClient"])(supabaseUrl || "https://placeholder.supabase.co", supabaseAnonKey || "placeholder-key", {
-    auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true
-    }
-});
-// Validate environment variables at runtime (client-side only)
-if ("TURBOPACK compile-time truthy", 1) {
-    if ("TURBOPACK compile-time falsy", 0) //TURBOPACK unreachable
-    ;
-}
+const supabase = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f40$supabase$2f$ssr$2f$dist$2f$module$2f$createBrowserClient$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["createBrowserClient"])(("TURBOPACK compile-time value", "https://yyfbfttutejbykkeuktm.supabase.co"), ("TURBOPACK compile-time value", "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inl5ZmJmdHR1dGVqYnlra2V1a3RtIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjUyMDU5ODcsImV4cCI6MjA4MDc4MTk4N30.sIhJws6nPUOIaHvZj2QI8JB1hE5wEE6I-WPCqwR1qgE"));
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -1380,6 +1541,8 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "use strict";
 
 __turbopack_context__.s([
+    "aiAPI",
+    ()=>aiAPI,
     "authAPI",
     ()=>authAPI,
     "focusSessionsAPI",
@@ -1703,6 +1866,157 @@ const focusSessionsAPI = {
         };
     }
 };
+const aiAPI = {
+    /**
+   * Fetches today's AI-generated plan for the current user.
+   */ async getDailyPlan (date) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_plans").select("*").eq("user_id", user.id).eq("plan_date", date).single();
+        // PGRST116 means no rows found - that's okay, return null
+        if (error && error.code !== "PGRST116") {
+            handleSupabaseError(error);
+        }
+        return data || null;
+    },
+    /**
+   * Marks a plan as accepted.
+   */ async acceptPlan (planId) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_plans").update({
+            status: "accepted",
+            accepted_at: new Date().toISOString()
+        }).eq("id", planId).eq("user_id", user.id);
+        if (error) handleSupabaseError(error);
+        // Log feedback event
+        await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("plan_feedback_events").insert({
+            plan_id: planId,
+            user_id: user.id,
+            event_type: "accepted"
+        });
+    },
+    /**
+   * Marks a plan as rejected.
+   */ async rejectPlan (planId) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_plans").update({
+            status: "rejected",
+            rejected_at: new Date().toISOString()
+        }).eq("id", planId).eq("user_id", user.id);
+        if (error) handleSupabaseError(error);
+        // Log feedback event
+        await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("plan_feedback_events").insert({
+            plan_id: planId,
+            user_id: user.id,
+            event_type: "rejected"
+        });
+    },
+    /**
+   * Updates a plan's schedule (when user edits it).
+   */ async updatePlanSchedule (planId, newSchedule) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        // First get current plan to store original
+        const { data: plan } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_plans").select("schedule, edit_count").eq("id", planId).eq("user_id", user.id).single();
+        const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_plans").update({
+            schedule: newSchedule,
+            original_schedule: plan?.schedule || null,
+            status: "edited",
+            edit_count: (plan?.edit_count || 0) + 1,
+            last_edited_at: new Date().toISOString()
+        }).eq("id", planId).eq("user_id", user.id);
+        if (error) handleSupabaseError(error);
+        // Log feedback event
+        await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("plan_feedback_events").insert({
+            plan_id: planId,
+            user_id: user.id,
+            event_type: "edited",
+            event_data: {
+                editCount: (plan?.edit_count || 0) + 1
+            }
+        });
+    },
+    /**
+   * Logs a feedback event for task completion within a plan.
+   */ async logPlanTaskCompletion (planId, taskId) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("plan_feedback_events").insert({
+            plan_id: planId,
+            user_id: user.id,
+            event_type: "task_completed",
+            event_data: {
+                taskId
+            }
+        });
+    },
+    /**
+   * Fetches recent chat history for the AI coach.
+   */ async getChatHistory (limit = 20) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_chat_history").select("*").eq("user_id", user.id).order("created_at", {
+            ascending: false
+        }).limit(limit);
+        if (error) handleSupabaseError(error);
+        return data || [];
+    },
+    /**
+   * Saves a chat message to history.
+   */ async saveChatMessage (role, message, context) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_chat_history").insert({
+            user_id: user.id,
+            role,
+            message,
+            context_snapshot: context || null
+        });
+        if (error) handleSupabaseError(error);
+    },
+    /**
+   * Fetches the user's AI profile (personalization data).
+   */ async getUserAIProfile () {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("user_ai_profiles").select("*").eq("user_id", user.id).single();
+        if (error && error.code !== "PGRST116") {
+            handleSupabaseError(error);
+        }
+        return data || null;
+    },
+    /**
+   * Fetches recent daily aggregates.
+   */ async getRecentAggregates (days = 14) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+        const startDateStr = startDate.toISOString().split("T")[0];
+        const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("daily_aggregates").select("*").eq("user_id", user.id).gte("date", startDateStr).order("date", {
+            ascending: false
+        });
+        if (error) handleSupabaseError(error);
+        return data || [];
+    },
+    /**
+   * Updates daily rating for a specific date.
+   */ async updateDailyRating (date, rating) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const clampedRating = Math.max(1, Math.min(10, rating));
+        const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("daily_aggregates").upsert({
+            user_id: user.id,
+            date,
+            daily_rating: clampedRating
+        }, {
+            onConflict: "user_id,date"
+        });
+        if (error) handleSupabaseError(error);
+    }
+};
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -1711,6 +2025,12 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "use strict";
 
 __turbopack_context__.s([
+    "regenerateAIPlan",
+    ()=>regenerateAIPlan,
+    "syncAIPlan",
+    ()=>syncAIPlan,
+    "syncAIProfile",
+    ()=>syncAIProfile,
     "syncStoreWithAPI",
     ()=>syncStoreWithAPI
 ]);
@@ -1757,9 +2077,95 @@ async function syncStoreWithAPI() {
         } catch (error) {
             console.error("Failed to sync focus sessions:", error);
         }
+        // Sync AI plan
+        try {
+            await syncAIPlan();
+        } catch (error) {
+            console.error("Failed to sync AI plan:", error);
+        }
+        // Sync AI profile
+        try {
+            await syncAIProfile();
+        } catch (error) {
+            console.error("Failed to sync AI profile:", error);
+        }
     } catch (error) {
         console.error("Failed to sync store with API:", error);
     // Don't throw - allow app to continue with local state
+    }
+}
+async function syncAIPlan() {
+    try {
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanLoading: true,
+            aiPlanError: null
+        });
+        const today = new Date().toISOString().split("T")[0];
+        const plan = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["aiAPI"].getDailyPlan(today);
+        if (plan) {
+            __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+                currentAIPlan: plan,
+                currentSchedule: plan.schedule || []
+            });
+        }
+    } catch (error) {
+        console.error("Failed to sync AI plan:", error);
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanError: "Failed to load AI plan"
+        });
+    } finally{
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanLoading: false
+        });
+    }
+}
+async function syncAIProfile() {
+    try {
+        const profile = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["aiAPI"].getUserAIProfile();
+        if (profile) {
+            __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+                userAIProfile: {
+                    optimal_focus_duration: profile.optimal_focus_duration,
+                    preferred_work_start_hour: profile.preferred_work_start_hour,
+                    preferred_work_end_hour: profile.preferred_work_end_hour,
+                    most_productive_hours: profile.most_productive_hours || [],
+                    avg_plan_acceptance_rate: profile.avg_plan_acceptance_rate || 0
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Failed to sync AI profile:", error);
+    // Non-critical - continue without profile
+    }
+}
+async function regenerateAIPlan() {
+    try {
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanLoading: true,
+            aiPlanError: null
+        });
+        const response = await fetch("/api/ai/generate-plan", {
+            method: "POST"
+        });
+        if (!response.ok) {
+            throw new Error("Failed to generate plan");
+        }
+        const data = await response.json();
+        if (data.plan) {
+            __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+                currentAIPlan: data.plan,
+                currentSchedule: data.plan.schedule || []
+            });
+        }
+    } catch (error) {
+        console.error("Failed to regenerate AI plan:", error);
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanError: "Failed to generate new plan"
+        });
+    } finally{
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanLoading: false
+        });
     }
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
@@ -1819,9 +2225,15 @@ var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$reports$2e$tsx
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$team$2d$collaboration$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/team-collaboration.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$smart$2d$notifications$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/smart-notifications.tsx [app-client] (ecmascript)");
 var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$voice$2d$commands$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/voice-commands.tsx [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$energy$2d$tracker$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/energy-tracker.tsx [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$insights$2f$weekly$2d$report$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/insights/weekly-report.tsx [app-client] (ecmascript)");
+var __TURBOPACK__imported__module__$5b$project$5d2f$components$2f$task$2d$decomposer$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__ = __turbopack_context__.i("[project]/components/task-decomposer.tsx [app-client] (ecmascript)");
 ;
 var _s = __turbopack_context__.k.signature();
 "use client";
+;
+;
+;
 ;
 ;
 ;
@@ -1965,7 +2377,7 @@ function Home() {
     if (!auth.isAuthenticated) {
         return /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$auth$2d$welcome$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
             fileName: "[project]/app/page.tsx",
-            lineNumber: 134,
+            lineNumber: 137,
             columnNumber: 12
         }, this);
     }
@@ -1980,7 +2392,7 @@ function Home() {
                         className: "animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 142,
+                        lineNumber: 145,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -1988,18 +2400,18 @@ function Home() {
                         children: "Loading..."
                     }, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 143,
+                        lineNumber: 146,
                         columnNumber: 11
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 141,
+                lineNumber: 144,
                 columnNumber: 9
             }, this)
         }, void 0, false, {
             fileName: "[project]/app/page.tsx",
-            lineNumber: 140,
+            lineNumber: 143,
             columnNumber: 7
         }, this);
     }
@@ -2026,7 +2438,7 @@ function Home() {
             }
         }, void 0, false, {
             fileName: "[project]/app/page.tsx",
-            lineNumber: 151,
+            lineNumber: 154,
             columnNumber: 7
         }, this);
     }
@@ -2038,7 +2450,7 @@ function Home() {
                 onMobileClose: ()=>setMobileMenuOpen(false)
             }, void 0, false, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 175,
+                lineNumber: 178,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("main", {
@@ -2046,7 +2458,7 @@ function Home() {
                 children: [
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$app$2d$header$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 180,
+                        lineNumber: 183,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -2054,110 +2466,125 @@ function Home() {
                         children: [
                             currentPage === "dashboard" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$dashboard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 182,
+                                lineNumber: 185,
                                 columnNumber: 43
                             }, this),
                             currentPage === "tasks" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$task$2d$manager$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 183,
+                                lineNumber: 186,
                                 columnNumber: 39
                             }, this),
                             currentPage === "habits" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$habit$2d$tracker$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 184,
+                                lineNumber: 187,
                                 columnNumber: 40
                             }, this),
                             currentPage === "goals" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$goals$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 185,
+                                lineNumber: 188,
                                 columnNumber: 39
                             }, this),
                             currentPage === "mood" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$mood$2d$tracker$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 186,
+                                lineNumber: 189,
                                 columnNumber: 38
                             }, this),
                             currentPage === "planner" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$day$2d$planner$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 187,
+                                lineNumber: 190,
                                 columnNumber: 41
                             }, this),
                             currentPage === "timeblocks" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$time$2d$block$2d$calendar$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 188,
+                                lineNumber: 191,
                                 columnNumber: 44
                             }, this),
                             currentPage === "analytics" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$analytics$2d$dashboard$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 189,
+                                lineNumber: 192,
                                 columnNumber: 43
                             }, this),
                             currentPage === "distractions" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$distraction$2d$log$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 190,
+                                lineNumber: 193,
                                 columnNumber: 46
                             }, this),
                             currentPage === "challenges" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$challenges$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 191,
+                                lineNumber: 194,
                                 columnNumber: 44
                             }, this),
                             currentPage === "sounds" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$focus$2d$sounds$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 192,
+                                lineNumber: 195,
                                 columnNumber: 40
                             }, this),
                             currentPage === "reports" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$reports$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 193,
+                                lineNumber: 196,
                                 columnNumber: 41
                             }, this),
                             currentPage === "team" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$team$2d$collaboration$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 194,
+                                lineNumber: 197,
                                 columnNumber: 38
                             }, this),
                             currentPage === "notifications" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$smart$2d$notifications$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 195,
+                                lineNumber: 198,
                                 columnNumber: 47
                             }, this),
                             currentPage === "voice" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$voice$2d$commands$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 196,
+                                lineNumber: 199,
                                 columnNumber: 39
                             }, this),
                             currentPage === "blocking" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$blocking$2d$settings$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 197,
+                                lineNumber: 200,
                                 columnNumber: 42
                             }, this),
                             currentPage === "settings" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$settings$2d$page$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 198,
+                                lineNumber: 201,
                                 columnNumber: 42
                             }, this),
                             currentPage === "coach" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$coach$2d$panel$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
                                 fileName: "[project]/app/page.tsx",
-                                lineNumber: 199,
+                                lineNumber: 202,
                                 columnNumber: 39
+                            }, this),
+                            currentPage === "energy" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$energy$2d$tracker$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
+                                fileName: "[project]/app/page.tsx",
+                                lineNumber: 203,
+                                columnNumber: 40
+                            }, this),
+                            currentPage === "insights" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$insights$2f$weekly$2d$report$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
+                                fileName: "[project]/app/page.tsx",
+                                lineNumber: 204,
+                                columnNumber: 42
+                            }, this),
+                            currentPage === "decomposer" && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$task$2d$decomposer$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {}, void 0, false, {
+                                fileName: "[project]/app/page.tsx",
+                                lineNumber: 205,
+                                columnNumber: 44
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/app/page.tsx",
-                        lineNumber: 181,
+                        lineNumber: 184,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/app/page.tsx",
-                lineNumber: 179,
+                lineNumber: 182,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/app/page.tsx",
-        lineNumber: 174,
+        lineNumber: 177,
         columnNumber: 5
     }, this);
 }

@@ -1,5 +1,11 @@
 {
   "/_global-error/page": "app/_global-error/page.js",
   "/_not-found/page": "app/_not-found/page.js",
+  "/api/ai/coach/route": "app/api/ai/coach/route.js",
+  "/api/ai/daily-rating/route": "app/api/ai/daily-rating/route.js",
+  "/api/ai/decompose-task/route": "app/api/ai/decompose-task/route.js",
+  "/api/ai/energy-optimizer/route": "app/api/ai/energy-optimizer/route.js",
+  "/api/ai/generate-plan/route": "app/api/ai/generate-plan/route.js",
+  "/api/cron/daily-brain/route": "app/api/cron/daily-brain/route.js",
   "/page": "app/page.js"
 }

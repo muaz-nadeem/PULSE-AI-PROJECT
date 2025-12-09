@@ -5,7 +5,7 @@ import type React from "react"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { useStore } from "@/lib/store"
-import { authAPI } from "@/lib/api"
+import { authService } from "@/lib/services"
 import { Button } from "@/components/ui/button"
 import { Mail, Lock, User, ArrowRight, Eye, EyeOff } from "lucide-react"
 
@@ -58,18 +58,25 @@ export default function SignupPage({ onSwitchToLogin }: SignupPageProps) {
 
     setIsLoading(true)
     try {
-      await authAPI.register(formData.email, formData.fullName, formData.password)
+      const result = await authService.register({
+        email: formData.email,
+        name: formData.fullName,
+        password: formData.password,
+      })
+      if (result.error) {
+        throw new Error(result.error)
+      }
       // Wait a bit for session to be established
       await new Promise(resolve => setTimeout(resolve, 1000))
-      
+
       // Verify session exists before proceeding
       const { supabase } = await import("@/lib/supabase/client")
       const { data: { session } } = await supabase.auth.getSession()
-      
+
       if (!session) {
         throw new Error("Session not created. Please check that email confirmation is disabled in Supabase settings, then try logging in.")
       }
-      
+
       // Supabase handles session automatically, just set auth state
       setAuth(true, formData.email)
       // Small delay to ensure state is set, then navigate
@@ -77,13 +84,13 @@ export default function SignupPage({ onSwitchToLogin }: SignupPageProps) {
       router.push("/")
     } catch (error: any) {
       const errorMessage = error.message || "Registration failed. Please try again."
-      
+
       // Check if it's an email-related error
       if (errorMessage.toLowerCase().includes("email") && errorMessage.toLowerCase().includes("invalid")) {
         // Check if email might already exist
         if (errorMessage.includes("yawar@gmail.com")) {
-          setErrors({ 
-            submit: "This email is already registered. Please try logging in instead, or use a different email address." 
+          setErrors({
+            submit: "This email is already registered. Please try logging in instead, or use a different email address."
           })
         } else {
           setErrors({ email: "This email address is already registered or invalid. Please try logging in or use a different email." })

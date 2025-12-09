@@ -1,5 +1,28 @@
 "use client"
 
+/**
+ * @deprecated LEGACY STORE - DO NOT ADD NEW FEATURES HERE
+ * 
+ * This file is being phased out. Use the new architecture instead:
+ * 
+ * STATE MANAGEMENT:
+ * - Tasks: import { useTaskStore } from "@/lib/store/slices/task-slice"
+ * - Goals: import { useGoalStore } from "@/lib/store/slices/goal-slice"
+ * 
+ * PURE BUSINESS LOGIC:
+ * - import { generateGoalSuggestions, computeDistractionInsights, ... } from "@/lib/domain"
+ * 
+ * SIDE EFFECTS / I/O:
+ * - import { taskService, habitService, goalService, ... } from "@/lib/services"
+ * 
+ * Migration Status:
+ * - [x] checkSmartNotifications -> uses checkSmartNotificationsLogic from domain
+ * - [x] processVoiceCommand -> uses parseVoiceCommand from domain  
+ * - [x] getAISuggestions -> uses generateGoalSuggestions from domain
+ * - [x] getDistractionInsights -> uses computeDistractionInsights from domain
+ * - [x] checkAchievements -> uses checkUnlockedAchievements from domain
+ */
+
 import { create } from "zustand"
 
 // Import types from domain layer
@@ -57,6 +80,10 @@ import {
   DEFAULT_ACHIEVEMENTS,
   type AchievementContext,
   type ChallengeContext,
+  // Notification logic
+  checkSmartNotificationsLogic,
+  // Voice command logic
+  parseVoiceCommand,
 } from "./domain"
 
 // Import services
@@ -68,6 +95,13 @@ import {
   authService,
   aiServices,
 } from "./services"
+
+// Re-export store slices for easy access
+export { useTaskStore } from "./store/slices/task-slice"
+export type { TaskSlice } from "./store/slices/task-slice"
+
+export { useGoalStore } from "./store/slices/goal-slice"
+export type { GoalSlice } from "./store/slices/goal-slice"
 
 // Re-export types for backward compatibility
 export type {
@@ -141,7 +175,7 @@ interface StoreState {
   // Settings
   setSettings: (settings: Partial<UserSettings>) => void
   setUserData: (name: string, goals: string[], role?: string) => void
-  
+
   // Blocking Settings
   blockingSettings: BlockingSettings
   setBlockingMode: (mode: "strict" | "standard" | "relaxed") => void
@@ -373,10 +407,10 @@ export const useStore = create<StoreState>((set, get) => ({
         dueDate: task.dueDate,
         focusMode: task.focusMode,
       })
-      
+
       if (result.error) throw new Error(result.error)
       const created = result.data!
-      
+
       set((state) => ({
         tasks: [
           ...state.tasks,
@@ -439,12 +473,12 @@ export const useStore = create<StoreState>((set, get) => ({
 
   addFocusSession: async (duration) => {
     try {
-      const api = await import("./api")
-      await api.focusSessionsAPI.create({ duration, completed: true })
+      const result = await focusService.createSession({ duration, completed: true })
+      if (result.error) throw new Error(result.error)
     } catch (error) {
-      console.error("Failed to create focus session in API:", error)
+      console.error("Failed to create focus session:", error)
     }
-    
+
     set((state) => {
       const newSession: FocusSession = {
         id: Math.random().toString(36).substring(7),
@@ -537,7 +571,25 @@ export const useStore = create<StoreState>((set, get) => ({
     return state.moodEntries
   },
 
-  addHabit: (habit) =>
+  addHabit: async (habit) => {
+    try {
+      const result = await habitService.create({
+        name: habit.name,
+        description: habit.description,
+        frequency: habit.frequency,
+        color: habit.color,
+      })
+      if (result.error) throw new Error(result.error)
+      if (result.data) {
+        set((state) => ({
+          habits: [...state.habits, result.data!],
+        }))
+        return
+      }
+    } catch (error) {
+      console.error("Failed to create habit:", error)
+    }
+    // Fallback: optimistic update
     set((state) => {
       const newHabit: Habit = {
         ...habit,
@@ -550,34 +602,56 @@ export const useStore = create<StoreState>((set, get) => ({
       return {
         habits: [...state.habits, newHabit],
       }
-    }),
+    })
+  },
 
-  deleteHabit: (id) =>
+  deleteHabit: async (id) => {
+    try {
+      await habitService.delete(id)
+    } catch (error) {
+      console.error("Failed to delete habit:", error)
+    }
     set((state) => ({
       habits: state.habits.filter((h) => h.id !== id),
-    })),
+    }))
+  },
 
-  toggleHabitCompletion: (habitId, date) =>
+  toggleHabitCompletion: async (habitId, date) => {
+    try {
+      const result = await habitService.toggleCompletion(habitId, date)
+      if (result.error) throw new Error(result.error)
+      if (result.data) {
+        set((state) => ({
+          habits: state.habits.map((h) =>
+            h.id === habitId ? result.data! : h
+          ),
+        }))
+        return
+      }
+    } catch (error) {
+      console.error("Failed to toggle habit:", error)
+    }
+    // Fallback: use domain function for local state update
     set((state) => {
       const habit = state.habits.find((h) => h.id === habitId)
       if (!habit) return state
 
-      // Use domain function for habit toggle logic
       const result = toggleHabitCompletionForDate(habit.completedDates, date)
 
       return {
         habits: state.habits.map((h) =>
           h.id === habitId
             ? {
-                ...h,
-                completedDates: result.completedDates,
-                currentStreak: result.currentStreak,
-                longestStreak: Math.max(h.longestStreak, result.longestStreak),
-              }
+              ...h,
+              completedDates: result.completedDates,
+              currentStreak: result.currentStreak,
+              longestStreak: Math.max(h.longestStreak, result.longestStreak),
+            }
             : h
         ),
       }
-    }),
+    })
+  },
 
   getHabitStreak: (habitId) => {
     const state = get()
@@ -585,7 +659,27 @@ export const useStore = create<StoreState>((set, get) => ({
     return habit?.currentStreak || 0
   },
 
-  addGoal: (goal) =>
+  addGoal: async (goal) => {
+    try {
+      const result = await goalService.create({
+        title: goal.title,
+        description: goal.description,
+        category: goal.category,
+        targetDate: goal.targetDate,
+        color: goal.color,
+        milestones: goal.milestones,
+      })
+      if (result.error) throw new Error(result.error)
+      if (result.data) {
+        set((state) => ({
+          goals: [...state.goals, result.data!],
+        }))
+        return
+      }
+    } catch (error) {
+      console.error("Failed to create goal:", error)
+    }
+    // Fallback: optimistic update
     set((state) => {
       const newGoal: Goal = {
         ...goal,
@@ -598,20 +692,40 @@ export const useStore = create<StoreState>((set, get) => ({
       return {
         goals: [...state.goals, newGoal],
       }
-    }),
+    })
+  },
 
-  deleteGoal: (id) =>
+  deleteGoal: async (id) => {
+    try {
+      await goalService.delete(id)
+    } catch (error) {
+      console.error("Failed to delete goal:", error)
+    }
     set((state) => ({
       goals: state.goals.filter((g) => g.id !== id),
-    })),
+    }))
+  },
 
-  updateGoal: (id, updates) =>
+  updateGoal: async (id, updates) => {
+    try {
+      const result = await goalService.update(id, updates)
+      if (result.error) throw new Error(result.error)
+      if (result.data) {
+        set((state) => ({
+          goals: state.goals.map((g) => (g.id === id ? result.data! : g)),
+        }))
+        return
+      }
+    } catch (error) {
+      console.error("Failed to update goal:", error)
+    }
+    // Fallback: use domain logic for local state update
     set((state) => {
       const goal = state.goals.find((g) => g.id === id)
       if (!goal) return state
 
       let updatedGoal = { ...goal, ...updates }
-      
+
       // Recalculate progress if milestones changed using domain function
       if (updates.milestones !== undefined) {
         const progress = calculateGoalProgress(updates.milestones)
@@ -625,7 +739,8 @@ export const useStore = create<StoreState>((set, get) => ({
       return {
         goals: state.goals.map((g) => (g.id === id ? updatedGoal : g)),
       }
-    }),
+    })
+  },
 
   addMilestone: (goalId, milestone) =>
     set((state) => {
@@ -639,11 +754,11 @@ export const useStore = create<StoreState>((set, get) => ({
         goals: state.goals.map((g) =>
           g.id === goalId
             ? {
-                ...g,
-                milestones: result.milestones,
-                progress: result.progress,
-                status: result.progress === 100 && g.status === "active" ? "completed" : g.status,
-              }
+              ...g,
+              milestones: result.milestones,
+              progress: result.progress,
+              status: result.progress === 100 && g.status === "active" ? "completed" : g.status,
+            }
             : g
         ),
       }
@@ -664,11 +779,11 @@ export const useStore = create<StoreState>((set, get) => ({
         goals: state.goals.map((g) =>
           g.id === goalId
             ? {
-                ...g,
-                milestones: updatedMilestones,
-                progress,
-                status: progress === 100 && g.status === "active" ? "completed" : g.status,
-              }
+              ...g,
+              milestones: updatedMilestones,
+              progress,
+              status: progress === 100 && g.status === "active" ? "completed" : g.status,
+            }
             : g
         ),
       }
@@ -686,10 +801,10 @@ export const useStore = create<StoreState>((set, get) => ({
         goals: state.goals.map((g) =>
           g.id === goalId
             ? {
-                ...g,
-                milestones: result.milestones,
-                progress: result.progress,
-              }
+              ...g,
+              milestones: result.milestones,
+              progress: result.progress,
+            }
             : g
         ),
       }
@@ -708,11 +823,11 @@ export const useStore = create<StoreState>((set, get) => ({
         goals: state.goals.map((g) =>
           g.id === goalId
             ? {
-                ...g,
-                milestones: result.milestones,
-                progress: result.progress,
-                status: result.progress === 100 && g.status === "active" ? "completed" : g.status,
-              }
+              ...g,
+              milestones: result.milestones,
+              progress: result.progress,
+              status: result.progress === 100 && g.status === "active" ? "completed" : g.status,
+            }
             : g
         ),
       }
@@ -752,10 +867,10 @@ export const useStore = create<StoreState>((set, get) => ({
 
   getDistractionInsights: (): DistractionInsights => {
     const state = get()
-    
+
     // Use domain function for distraction insights
     const insights = computeDistractionInsights(state.distractions)
-    
+
     // Add today-specific pattern if applicable
     const today = new Date()
     today.setHours(0, 0, 0, 0)
@@ -803,10 +918,10 @@ export const useStore = create<StoreState>((set, get) => ({
         challenges: state.challenges.map((c) =>
           c.id === challengeId
             ? {
-                ...c,
-                current,
-                completed,
-              }
+              ...c,
+              current,
+              completed,
+            }
             : c
         ),
       }
@@ -841,7 +956,7 @@ export const useStore = create<StoreState>((set, get) => ({
 
   getLeaderboard: () => {
     const state = get()
-    
+
     // Use domain functions for leaderboard calculation
     const context: ChallengeContext = {
       focusSessions: state.focusSessions,
@@ -850,7 +965,7 @@ export const useStore = create<StoreState>((set, get) => ({
       goals: state.goals,
     }
     const score = computeUserScore(context)
-    
+
     return generateLeaderboard(score)
   },
 
@@ -916,11 +1031,11 @@ export const useStore = create<StoreState>((set, get) => ({
         timeBlocks: state.timeBlocks.map((b) =>
           b.id === id
             ? {
-                ...b,
-                date: newDate,
-                startTime: newStartTime,
-                endTime: newEndTime,
-              }
+              ...b,
+              date: newDate,
+              startTime: newStartTime,
+              endTime: newEndTime,
+            }
             : b
         ),
       }
@@ -1063,9 +1178,9 @@ For detailed analytics, visit the Analytics dashboard.
           sharedGoals: state.sharedGoals.map((sg) =>
             sg.goalId === goalId
               ? {
-                  ...sg,
-                  sharedWith: [...new Set([...sg.sharedWith, ...memberIds])],
-                }
+                ...sg,
+                sharedWith: [...new Set([...sg.sharedWith, ...memberIds])],
+              }
               : sg
           ),
         }
@@ -1138,170 +1253,26 @@ For detailed analytics, visit the Analytics dashboard.
   checkSmartNotifications: () => {
     const state = get()
     const now = new Date()
-    const todayStr = now.toISOString().split("T")[0]
-    const lastSession = state.focusSessions[state.focusSessions.length - 1]
 
-    // Break suggestion - if last session was more than 25 minutes ago and no break taken
-    if (lastSession) {
-      const sessionTime = new Date(lastSession.date).getTime()
-      const timeSinceSession = (now.getTime() - sessionTime) / (1000 * 60) // minutes
-      if (timeSinceSession >= 25 && timeSinceSession < 30) {
-        const hasRecentBreak = state.distractions.some((d) => {
-          const distTime = new Date(d.date).getTime()
-          return distTime > sessionTime && d.type === "other" && d.source.toLowerCase().includes("break")
-        })
-        if (!hasRecentBreak) {
-          state.addNotification({
-            type: "suggestion",
-            title: "Time for a Break!",
-            message: "You've been focusing for a while. Take a 5-minute break to recharge.",
-            actionUrl: "/dashboard",
-          })
-        }
-      }
-    }
-
-    // Goal milestone celebration
-    state.goals.forEach((goal) => {
-      const recentMilestones = goal.milestones.filter((m) => {
-        if (!m.completedDate) return false
-        const completedTime = new Date(m.completedDate).getTime()
-        return now.getTime() - completedTime < 60000 // Within last minute
-      })
-      if (recentMilestones.length > 0) {
-        state.addNotification({
-          type: "celebration",
-          title: "Milestone Achieved! 🎉",
-          message: `You completed "${recentMilestones[0].title}" for "${goal.title}"`,
-          actionUrl: "/goals",
-        })
-      }
+    // Use pure domain function to compute notifications
+    const notificationsToAdd = checkSmartNotificationsLogic({
+      now,
+      focusSessions: state.focusSessions,
+      distractions: state.distractions,
+      goals: state.goals,
+      tasks: state.tasks,
+      habits: state.habits,
+      existingNotifications: state.notifications,
     })
 
-    // Context-aware reminders
-    const todayTasks = state.tasks.filter((t) => {
-      if (t.completed) return false
-      const taskDate = new Date(t.createdAt)
-      return taskDate.toDateString() === now.toDateString()
-    })
-    if (todayTasks.length > 0 && now.getHours() === 9 && now.getMinutes() < 5) {
+    // Dispatch each notification
+    notificationsToAdd.forEach((notif) => {
       state.addNotification({
-        type: "reminder",
-        title: "Good Morning!",
-        message: `You have ${todayTasks.length} task${todayTasks.length > 1 ? "s" : ""} to complete today.`,
-        actionUrl: "/tasks",
+        type: notif.type,
+        title: notif.title,
+        message: notif.message,
+        actionUrl: notif.actionUrl,
       })
-    }
-
-    // Habit reminders - check for habits due soon or overdue
-    const currentHour = now.getHours()
-    const currentMinute = now.getMinutes()
-    
-    state.habits.forEach((habit) => {
-      // Skip if not auto-scheduled or already completed today
-      if (habit.autoSchedule === false) return
-      if (habit.completedDates.includes(todayStr)) return
-      
-      // Determine if habit is due now based on preferred time
-      let isDue = false
-      let isOverdue = false
-      let timeWindowMessage = ""
-      
-      if (habit.scheduledTime) {
-        // Use AI-scheduled time
-        const [schedHour, schedMinute] = habit.scheduledTime.split(":").map(Number)
-        const minutesUntil = (schedHour * 60 + schedMinute) - (currentHour * 60 + currentMinute)
-        
-        if (minutesUntil <= 5 && minutesUntil >= 0) {
-          isDue = true
-          timeWindowMessage = "starting now"
-        } else if (minutesUntil < 0 && minutesUntil > -60) {
-          isOverdue = true
-          timeWindowMessage = `${Math.abs(minutesUntil)} min overdue`
-        }
-      } else if (habit.preferredTime) {
-        // Use preferred time windows
-        const timeWindows = {
-          morning: { start: 6, end: 11, label: "morning" },
-          afternoon: { start: 12, end: 17, label: "afternoon" },
-          evening: { start: 18, end: 22, label: "evening" },
-        }
-        
-        const window = timeWindows[habit.preferredTime as keyof typeof timeWindows]
-        if (window) {
-          // Remind 5 minutes before window starts
-          if (currentHour === window.start && currentMinute <= 5) {
-            isDue = true
-            timeWindowMessage = `${window.label} window starting`
-          }
-          // Overdue if past window end
-          else if (currentHour >= window.end) {
-            isOverdue = true
-            timeWindowMessage = `${window.label} window passed`
-          }
-        }
-      }
-      
-      // Check if we already sent a notification for this habit recently
-      const recentHabitNotification = state.notifications.some((n) => {
-        const notifTime = new Date(n.timestamp).getTime()
-        return (
-          n.title.includes(habit.name) &&
-          now.getTime() - notifTime < 30 * 60 * 1000 // Within last 30 minutes
-        )
-      })
-      
-      if (isDue && !recentHabitNotification) {
-        const categoryEmoji = habit.category === "health" ? "💪" 
-          : habit.category === "learning" ? "📚"
-          : habit.category === "mindfulness" ? "🧘"
-          : habit.category === "productivity" ? "⚡"
-          : habit.category === "social" ? "👥" : "✨"
-          
-        state.addNotification({
-          type: "reminder",
-          title: `${categoryEmoji} Time for ${habit.name}!`,
-          message: habit.currentStreak > 0 
-            ? `Keep your ${habit.currentStreak}-day streak going! (${timeWindowMessage})`
-            : `${habit.duration || 15} minutes - ${timeWindowMessage}`,
-          actionUrl: "/habits",
-        })
-      } else if (isOverdue && !recentHabitNotification) {
-        state.addNotification({
-          type: "suggestion",
-          title: `Don't forget: ${habit.name}`,
-          message: habit.currentStreak > 0
-            ? `⚠️ Your ${habit.currentStreak}-day streak is at risk! (${timeWindowMessage})`
-            : `You still have time to complete this habit. (${timeWindowMessage})`,
-          actionUrl: "/habits",
-        })
-      }
-    })
-
-    // Celebrate habit completion streaks
-    state.habits.forEach((habit) => {
-      const justCompleted = habit.completedDates.includes(todayStr)
-      const streakMilestones = [7, 14, 21, 30, 60, 90, 100, 365]
-      
-      if (justCompleted && streakMilestones.includes(habit.currentStreak)) {
-        const recentStreakNotif = state.notifications.some((n) => {
-          const notifTime = new Date(n.timestamp).getTime()
-          return (
-            n.title.includes("Streak") &&
-            n.title.includes(habit.name) &&
-            now.getTime() - notifTime < 24 * 60 * 60 * 1000 // Within last 24 hours
-          )
-        })
-        
-        if (!recentStreakNotif) {
-          state.addNotification({
-            type: "celebration",
-            title: `🔥 ${habit.currentStreak}-Day Streak!`,
-            message: `Amazing! You've maintained "${habit.name}" for ${habit.currentStreak} days in a row!`,
-            actionUrl: "/habits",
-          })
-        }
-      }
     })
   },
 
@@ -1312,55 +1283,45 @@ For detailed analytics, visit the Analytics dashboard.
 
   processVoiceCommand: (command) => {
     const state = get()
-    const lowerCommand = command.toLowerCase().trim()
 
-    // Task capture
-    if (lowerCommand.includes("add task") || lowerCommand.includes("create task") || lowerCommand.includes("new task")) {
-      const taskText = command.replace(/add task|create task|new task/gi, "").trim()
-      if (taskText) {
+    // Use pure domain function to parse command intent
+    const intent = parseVoiceCommand(command)
+
+    switch (intent.type) {
+      case "add_task":
         state.addTask({
-          title: taskText,
-          priority: "medium",
+          title: intent.title,
+          priority: intent.priority,
           timeEstimate: 30,
         })
         state.addNotification({
           type: "reminder",
           title: "Task Added",
-          message: `"${taskText}" has been added to your tasks.`,
+          message: `"${intent.title}" has been added to your tasks.`,
         })
-      }
-    }
+        break
 
-    // Start focus session
-    if (lowerCommand.includes("start focus") || lowerCommand.includes("begin focus") || lowerCommand.includes("focus session")) {
-      const duration = 25 // Default
-      state.addFocusSession(duration)
-      state.addNotification({
-        type: "reminder",
-        title: "Focus Session Started",
-        message: `Started a ${duration}-minute focus session.`,
-      })
-    }
+      case "start_focus":
+        state.addFocusSession(intent.duration)
+        state.addNotification({
+          type: "reminder",
+          title: "Focus Session Started",
+          message: `Started a ${intent.duration}-minute focus session.`,
+        })
+        break
 
-    // Log mood
-    if (lowerCommand.includes("mood") || lowerCommand.includes("feeling")) {
-      let mood: "excellent" | "good" | "neutral" | "sad" | "very-sad" = "neutral"
-      if (lowerCommand.includes("excellent") || lowerCommand.includes("great") || lowerCommand.includes("amazing")) {
-        mood = "excellent"
-      } else if (lowerCommand.includes("good") || lowerCommand.includes("fine") || lowerCommand.includes("okay")) {
-        mood = "good"
-      } else if (lowerCommand.includes("sad") || lowerCommand.includes("bad") || lowerCommand.includes("terrible")) {
-        mood = "sad"
-      } else if (lowerCommand.includes("very sad") || lowerCommand.includes("awful")) {
-        mood = "very-sad"
-      }
-      const notes = command.replace(/mood|feeling/gi, "").trim()
-      state.addMoodEntry(mood, notes || "")
-      state.addNotification({
-        type: "reminder",
-        title: "Mood Logged",
-        message: `Your mood has been recorded as "${mood}".`,
-      })
+      case "log_mood":
+        state.addMoodEntry(intent.mood, intent.notes)
+        state.addNotification({
+          type: "reminder",
+          title: "Mood Logged",
+          message: `Your mood has been recorded as "${intent.mood}".`,
+        })
+        break
+
+      case "unknown":
+        // Command not recognized - no action taken
+        break
     }
   },
 
@@ -1402,28 +1363,28 @@ For detailed analytics, visit the Analytics dashboard.
 
   // AI Features - Actions
   setCurrentAIPlan: (plan) => set({ currentAIPlan: plan }),
-  
+
   setUserAIProfile: (profile) => set({ userAIProfile: profile }),
-  
+
   setAIPlanLoading: (loading) => set({ aiPlanLoading: loading }),
-  
+
   setAIPlanError: (error) => set({ aiPlanError: error }),
 
   acceptAIPlan: async () => {
     const state = get()
     if (!state.currentAIPlan) return
-    
+
     try {
       const api = await import("./api")
       await api.aiAPI.acceptPlan(state.currentAIPlan.id)
-      
+
       set({
         currentAIPlan: {
           ...state.currentAIPlan,
           status: "accepted",
         },
       })
-      
+
       // Also accept schedule to history
       state.acceptSchedule()
     } catch (error) {
@@ -1435,11 +1396,11 @@ For detailed analytics, visit the Analytics dashboard.
   rejectAIPlan: async () => {
     const state = get()
     if (!state.currentAIPlan) return
-    
+
     try {
       const api = await import("./api")
       await api.aiAPI.rejectPlan(state.currentAIPlan.id)
-      
+
       set({
         currentAIPlan: {
           ...state.currentAIPlan,

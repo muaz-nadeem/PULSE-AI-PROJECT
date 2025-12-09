@@ -99,7 +99,7 @@
         "transform": "lodash/{{member}}"
       }
     },
-    "outputFileTracingRoot": "D:\\5th sem\\PULSE-AI-PROJECT",
+    "outputFileTracingRoot": "C:\\Users\\OGDCL\\Downloads\\PULSE-AI-PROJECT",
     "cacheComponents": false,
     "cacheLife": {
       "default": {
@@ -290,11 +290,11 @@
     "bundlePagesRouterDependencies": false,
     "configFileName": "next.config.js",
     "turbopack": {
-      "root": "D:\\5th sem\\PULSE-AI-PROJECT"
+      "root": "C:\\Users\\OGDCL\\Downloads\\PULSE-AI-PROJECT"
     },
     "distDirRoot": ".next"
   },
-  "appDir": "D:\\5th sem\\PULSE-AI-PROJECT",
+  "appDir": "C:\\Users\\OGDCL\\Downloads\\PULSE-AI-PROJECT",
   "relativeAppDir": "",
   "files": [
     ".next\\routes-manifest.json",

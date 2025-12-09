@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { useStore } from "@/lib/store"
+import { useTasks } from "@/lib/hooks"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -9,7 +9,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Flag, X, Plus, Calendar } from "lucide-react"
 
 export default function TaskManager() {
-  const { tasks, addTask, deleteTask, toggleTask } = useStore()
+  const { tasks, addTask, deleteTask, toggleTask } = useTasks()
   const [showAddTask, setShowAddTask] = useState(false)
   const [selectedDate, setSelectedDate] = useState(new Date())
   const [formData, setFormData] = useState<{
@@ -118,13 +118,12 @@ export default function TaskManager() {
       days.push(
         <div
           key={`date-${dateStr}`}
-          className={`text-center py-2 rounded cursor-pointer transition-colors ${
-            isToday
+          className={`text-center py-2 rounded cursor-pointer transition-colors ${isToday
               ? "bg-primary/20 border border-primary"
               : dayTasks.length > 0
                 ? "bg-secondary/30 border border-border"
                 : "border border-border/30 hover:border-border"
-          }`}
+            }`}
         >
           <div className="text-sm font-medium text-foreground">{day}</div>
           {dayTasks.length > 0 && (
@@ -174,23 +173,21 @@ export default function TaskManager() {
                 {todaysTasks.map((task) => (
                   <div
                     key={task.id}
-                    className={`flex items-start gap-3 p-4 rounded-lg border transition-colors ${
-                      task.completed
+                    className={`flex items-start gap-3 p-4 rounded-lg border transition-colors ${task.completed
                         ? "bg-secondary/20 border-border/50 opacity-60"
                         : "bg-secondary/30 border-border/50 hover:border-primary/50"
-                    }`}
+                      }`}
                   >
-                    <Checkbox 
-                      checked={task.completed} 
-                      onCheckedChange={() => toggleTask(task.id)} 
+                    <Checkbox
+                      checked={task.completed}
+                      onCheckedChange={() => toggleTask(task.id)}
                       className="mt-1"
                       aria-label={`Mark ${task.title} as ${task.completed ? "incomplete" : "complete"}`}
                     />
                     <div className="flex-1 min-w-0">
                       <p
-                        className={`text-sm font-medium ${
-                          task.completed ? "line-through text-muted-foreground" : "text-foreground"
-                        }`}
+                        className={`text-sm font-medium ${task.completed ? "line-through text-muted-foreground" : "text-foreground"
+                          }`}
                       >
                         {task.title}
                       </p>
@@ -201,9 +198,8 @@ export default function TaskManager() {
                           {task.category}
                         </span>
                         <span
-                          className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded border ${
-                            priorityColors[task.priority as keyof typeof priorityColors]
-                          }`}
+                          className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded border ${priorityColors[task.priority as keyof typeof priorityColors]
+                            }`}
                         >
                           <Flag className="w-3 h-3" />
                           {task.priority}
@@ -360,9 +356,9 @@ export default function TaskManager() {
                 .slice(0, 5)
                 .map((task) => (
                   <div key={task.id} className="flex items-start gap-2 p-2 rounded bg-secondary/20">
-                    <Checkbox 
-                      checked={task.completed} 
-                      onCheckedChange={() => toggleTask(task.id)} 
+                    <Checkbox
+                      checked={task.completed}
+                      onCheckedChange={() => toggleTask(task.id)}
                       className="mt-0.5"
                       aria-label={`Mark ${task.title} as ${task.completed ? "incomplete" : "complete"}`}
                     />
@@ -379,8 +375,8 @@ export default function TaskManager() {
                 const selectedDateStr = `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
                 return normalizedDueDate === selectedDateStr
               }).length === 0 && (
-                <p className="text-sm text-muted-foreground">No tasks on this date</p>
-              )}
+                  <p className="text-sm text-muted-foreground">No tasks on this date</p>
+                )}
             </div>
           </Card>
         </div>

@@ -1,7 +1,8 @@
 "use client"
 
 import { useState } from "react"
-import { useStore, type Distraction } from "@/lib/store"
+import { useStore } from "@/lib/store"
+import { computeDistractionInsights, type Distraction } from "@/lib/domain"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -22,7 +23,7 @@ const DISTRACTION_TYPES = [
 const COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#ef4444", "#6366f1"]
 
 export default function DistractionLog() {
-  const { distractions, addDistraction, deleteDistraction, getDistractionInsights, focusSessions } = useStore()
+  const { distractions, addDistraction, deleteDistraction, focusSessions } = useStore()
   const [showAddForm, setShowAddForm] = useState(false)
   const [newDistraction, setNewDistraction] = useState({
     type: "app" as Distraction["type"],
@@ -32,7 +33,21 @@ export default function DistractionLog() {
     notes: "",
   })
 
-  const insights = getDistractionInsights()
+  // Use domain function for insights
+  const insights = computeDistractionInsights(distractions)
+
+  // Add today-specific pattern (matching legacy behavior)
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const todayDistractions = distractions.filter((d) => {
+    const dDate = new Date(d.date)
+    dDate.setHours(0, 0, 0, 0)
+    return dDate.getTime() === today.getTime()
+  })
+  if (todayDistractions.length > 5) {
+    insights.patterns.push(`You've had ${todayDistractions.length} distractions today - consider using blocking mode`)
+  }
+
   const recentDistractions = [...distractions].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 10)
 
   const handleAddDistraction = () => {
@@ -70,14 +85,6 @@ export default function DistractionLog() {
     count: source.count,
     color: COLORS[idx % COLORS.length],
   }))
-
-  const today = new Date()
-  today.setHours(0, 0, 0, 0)
-  const todayDistractions = distractions.filter((d) => {
-    const dDate = new Date(d.date)
-    dDate.setHours(0, 0, 0, 0)
-    return dDate.getTime() === today.getTime()
-  })
 
   return (
     <div className="min-h-screen bg-background p-8">

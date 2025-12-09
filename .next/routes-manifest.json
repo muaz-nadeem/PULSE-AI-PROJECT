@@ -38,6 +38,42 @@
       "regex": "^/_not\\-found(?:/)?$",
       "routeKeys": {},
       "namedRegex": "^/_not\\-found(?:/)?$"
+    },
+    {
+      "page": "/api/ai/coach",
+      "regex": "^/api/ai/coach(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai/coach(?:/)?$"
+    },
+    {
+      "page": "/api/ai/daily-rating",
+      "regex": "^/api/ai/daily\\-rating(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai/daily\\-rating(?:/)?$"
+    },
+    {
+      "page": "/api/ai/decompose-task",
+      "regex": "^/api/ai/decompose\\-task(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai/decompose\\-task(?:/)?$"
+    },
+    {
+      "page": "/api/ai/energy-optimizer",
+      "regex": "^/api/ai/energy\\-optimizer(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai/energy\\-optimizer(?:/)?$"
+    },
+    {
+      "page": "/api/ai/generate-plan",
+      "regex": "^/api/ai/generate\\-plan(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/ai/generate\\-plan(?:/)?$"
+    },
+    {
+      "page": "/api/cron/daily-brain",
+      "regex": "^/api/cron/daily\\-brain(?:/)?$",
+      "routeKeys": {},
+      "namedRegex": "^/api/cron/daily\\-brain(?:/)?$"
     }
   ],
   "dataRoutes": [],

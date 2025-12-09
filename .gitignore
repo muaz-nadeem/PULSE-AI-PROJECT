@@ -3,9 +3,14 @@ node_modules/
 dist/
 build/
 
-# Environment / Secrets
+# Next.js
+.next/
+out/
+
+# Environment files
 .env
-.env.*
+.env.local
+.env.*.local
 
 # Editor stuff
 .vscode/
@@ -15,5 +20,9 @@ build/
 .DS_Store
 Thumbs.db
 
-#Database
+# Database
 .db
+
+# TypeScript
+*.tsbuildinfo
+tsconfig.tsbuildinfo

@@ -4,7 +4,7 @@ import { useState, useEffect } from "react"
 import { useStore } from "@/lib/store"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Bell, CheckCircle2, Sparkles, Coffee, Trophy, Target, X } from "lucide-react"
+import { Bell, CheckCircle2, Sparkles, Coffee, Trophy, Target, X, Calendar, Flame } from "lucide-react"
 
 export default function SmartNotifications() {
   const { notifications, markNotificationRead, clearNotifications, getUnreadNotifications, checkSmartNotifications } = useStore()
@@ -36,6 +36,10 @@ export default function SmartNotifications() {
         return <Coffee className="w-5 h-5 text-orange-500" />
       case "milestone":
         return <Target className="w-5 h-5 text-green-500" />
+      case "habit":
+        return <Calendar className="w-5 h-5 text-teal-500" />
+      case "streak":
+        return <Flame className="w-5 h-5 text-orange-500" />
       default:
         return <Bell className="w-5 h-5 text-muted-foreground" />
     }
@@ -53,6 +57,10 @@ export default function SmartNotifications() {
         return "bg-orange-500/10 border-orange-500/50"
       case "milestone":
         return "bg-green-500/10 border-green-500/50"
+      case "habit":
+        return "bg-teal-500/10 border-teal-500/50"
+      case "streak":
+        return "bg-orange-500/10 border-orange-500/50"
       default:
         return "bg-card border-border"
     }
@@ -232,6 +240,24 @@ export default function SmartNotifications() {
               </h4>
               <p className="text-sm text-muted-foreground">
                 Stay motivated with progress updates and suggestions to keep you on track.
+              </p>
+            </div>
+            <div className="p-4 bg-card/50 rounded-lg border border-border/50">
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <Calendar className="w-4 h-4 text-teal-500" />
+                Habit Reminders
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Get notified when it's time for your scheduled habits. AI schedules them at optimal times.
+              </p>
+            </div>
+            <div className="p-4 bg-card/50 rounded-lg border border-border/50">
+              <h4 className="font-semibold text-foreground mb-2 flex items-center gap-2">
+                <Flame className="w-4 h-4 text-orange-500" />
+                Streak Celebrations
+              </h4>
+              <p className="text-sm text-muted-foreground">
+                Celebrate your habit streaks! Get special notifications at 7, 14, 21, 30, and more days.
               </p>
             </div>
           </div>

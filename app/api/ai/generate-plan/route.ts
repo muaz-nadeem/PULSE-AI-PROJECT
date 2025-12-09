@@ -4,7 +4,7 @@ import { generateScheduleWithFallback } from '@/lib/ai/schedule-generator';
 import { getUserAIProfile, ensureUserProfile } from '@/lib/services/personalization-service';
 import { getRecentAggregates } from '@/lib/services/aggregation-service';
 import { logAIEvent, logAIError, logAIFeatureUsage } from '@/lib/ai/logger';
-import type { ScheduleContext, Task, Goal } from '@/lib/ai/types';
+import type { ScheduleContext, Task, Goal, ScheduledHabit } from '@/lib/ai/types';
 import { getDefaultProfile, aiConfig } from '@/lib/ai/types';
 
 /**
@@ -99,8 +99,12 @@ async function buildContextForUser(
   supabase: Awaited<ReturnType<typeof createClient>>,
   userId: string
 ): Promise<ScheduleContext> {
-  // Fetch all required data in parallel
-  const [userRes, profileRes, aggregatesRes, tasksRes, goalsRes] = await Promise.all([
+  // Get current day of week for weekly habit filtering
+  const today = new Date();
+  const dayOfWeek = today.getDay(); // 0 = Sunday, 1 = Monday, etc.
+
+  // Fetch all required data in parallel (including habits)
+  const [userRes, profileRes, aggregatesRes, tasksRes, goalsRes, habitsRes] = await Promise.all([
     supabase.from('users').select('name').eq('id', userId).single(),
     supabase.from('user_ai_profiles').select('*').eq('user_id', userId).single(),
     supabase.from('daily_aggregates').select('*').eq('user_id', userId)
@@ -108,6 +112,8 @@ async function buildContextForUser(
     supabase.from('tasks').select('*').eq('user_id', userId).eq('completed', false)
       .order('created_at', { ascending: false }),
     supabase.from('goals').select('*').eq('user_id', userId).eq('status', 'active'),
+    // Fetch habits with auto_schedule enabled
+    supabase.from('habits').select('*').eq('user_id', userId).neq('auto_schedule', false),
   ]);
 
   // Map tasks to expected format
@@ -138,6 +144,27 @@ async function buildContextForUser(
     color: g.color,
   }));
 
+  // Filter and map habits to expected format
+  // Daily habits are always included, weekly habits only on their scheduled day
+  const habits: ScheduledHabit[] = (habitsRes.data || [])
+    .filter(h => {
+      if (h.frequency === 'daily') return true;
+      // For weekly habits, we could add day-of-week filtering later
+      // For now, include all weekly habits 
+      return h.frequency === 'weekly';
+    })
+    .map(h => ({
+      id: h.id,
+      name: h.name,
+      description: h.description || undefined,
+      frequency: h.frequency as 'daily' | 'weekly',
+      preferredTime: h.preferred_time || 'morning',
+      duration: h.duration || 15,
+      autoSchedule: h.auto_schedule !== false,
+      category: h.category || 'other',
+      currentStreak: h.current_streak || 0,
+    }));
+
   // Get profile or create default
   let profile = profileRes.data;
   if (!profile) {
@@ -159,6 +186,7 @@ async function buildContextForUser(
     recentAggregates: (aggregatesRes.data || []) as any[],
     todaysTasks: tasks,
     activeGoals: goals,
+    activeHabits: habits,
     currentTime: new Date().toTimeString().slice(0, 5),
   };
 }

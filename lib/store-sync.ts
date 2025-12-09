@@ -1,11 +1,18 @@
 import { useStore } from "./store"
 import { tasksAPI, focusSessionsAPI, aiAPI } from "./api"
+import { supabase } from "./supabase/client"
 
 /**
  * Syncs the local Zustand store with the Supabase backend
  * This function fetches data from Supabase and updates the store
  */
 export async function syncStoreWithAPI(): Promise<void> {
+  const { data: { session } } = await supabase.auth.getSession()
+
+  if (!session) {
+    return
+  }
+
   try {
     // Sync tasks
     try {
@@ -69,12 +76,12 @@ export async function syncStoreWithAPI(): Promise<void> {
 export async function syncAIPlan(): Promise<void> {
   try {
     useStore.setState({ aiPlanLoading: true, aiPlanError: null })
-    
+
     const today = new Date().toISOString().split("T")[0]
     const plan = await aiAPI.getDailyPlan(today)
-    
+
     if (plan) {
-      useStore.setState({ 
+      useStore.setState({
         currentAIPlan: plan,
         currentSchedule: plan.schedule || [],
       })
@@ -93,9 +100,9 @@ export async function syncAIPlan(): Promise<void> {
 export async function syncAIProfile(): Promise<void> {
   try {
     const profile = await aiAPI.getUserAIProfile()
-    
+
     if (profile) {
-      useStore.setState({ 
+      useStore.setState({
         userAIProfile: {
           optimal_focus_duration: profile.optimal_focus_duration,
           preferred_work_start_hour: profile.preferred_work_start_hour,
@@ -117,17 +124,17 @@ export async function syncAIProfile(): Promise<void> {
 export async function regenerateAIPlan(): Promise<void> {
   try {
     useStore.setState({ aiPlanLoading: true, aiPlanError: null })
-    
+
     const response = await fetch("/api/ai/generate-plan", { method: "POST" })
-    
+
     if (!response.ok) {
       throw new Error("Failed to generate plan")
     }
-    
+
     const data = await response.json()
-    
+
     if (data.plan) {
-      useStore.setState({ 
+      useStore.setState({
         currentAIPlan: data.plan,
         currentSchedule: data.plan.schedule || [],
       })

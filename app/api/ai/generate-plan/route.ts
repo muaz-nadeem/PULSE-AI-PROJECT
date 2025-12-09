@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { generateScheduleWithFallback } from '@/lib/ai/schedule-generator';
+import { generateDailySchedule } from '@/lib/ai/schedule-generator';
 import { getUserAIProfile, ensureUserProfile } from '@/lib/services/personalization-service';
 import { getRecentAggregates } from '@/lib/services/aggregation-service';
 import { logAIEvent, logAIError, logAIFeatureUsage } from '@/lib/ai/logger';
@@ -19,8 +19,8 @@ import { getDefaultProfile, aiConfig } from '@/lib/ai/types';
 export async function POST(request: NextRequest) {
   // Check if AI features are enabled
   if (!aiConfig.featuresEnabled) {
-    return NextResponse.json({ 
-      error: 'AI features are disabled' 
+    return NextResponse.json({
+      error: 'AI features are disabled'
     }, { status: 503 });
   }
 
@@ -39,8 +39,11 @@ export async function POST(request: NextRequest) {
     // Build context for schedule generation
     const context = await buildContextForUser(supabase, user.id);
 
-    // Generate schedule
-    const schedule = await generateScheduleWithFallback(user.id, context);
+    // Generate schedule using the direct Gemini approach
+    const schedule = await generateDailySchedule({
+      tasks: context.todaysTasks,
+      focusDuration: context.profile.optimal_focus_duration || 25,
+    });
 
     const todayStr = new Date().toISOString().split('T')[0];
 
@@ -50,10 +53,10 @@ export async function POST(request: NextRequest) {
       .upsert({
         user_id: user.id,
         plan_date: todayStr,
-        schedule: schedule.schedule,
-        explanation: schedule.explanation,
-        reasoning: schedule.reasoning,
-        model_version: schedule.modelVersion,
+        schedule: schedule,
+        explanation: 'AI-generated schedule based on your tasks.',
+        reasoning: {},
+        model_version: 'gemini-2.5-flash',
         status: 'pending',
         generated_at: new Date().toISOString(),
       }, { onConflict: 'user_id,plan_date' })
@@ -69,7 +72,7 @@ export async function POST(request: NextRequest) {
     logAIEvent('manual_plan_generated', {
       userId: user.id,
       latencyMs: latency,
-      scheduleItems: schedule.schedule.length,
+      scheduleItems: schedule.length,
     });
 
     return NextResponse.json({
@@ -80,12 +83,12 @@ export async function POST(request: NextRequest) {
 
   } catch (error) {
     const latency = Date.now() - startTime;
-    logAIError(error as Error, { 
+    logAIError(error as Error, {
       operation: 'manual_plan_generation',
       latencyMs: latency,
     });
 
-    return NextResponse.json({ 
+    return NextResponse.json({
       error: (error as Error).message,
       latencyMs: latency,
     }, { status: 500 });

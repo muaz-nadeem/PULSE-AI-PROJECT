@@ -30,6 +30,8 @@ export const metadata: Metadata = {
   },
 }
 
+import GlobalMoodCheck from "@/components/global-mood-check"
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -38,6 +40,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`font-sans antialiased`} suppressHydrationWarning>
+        <GlobalMoodCheck />
         {children}
         <Analytics />
       </body>

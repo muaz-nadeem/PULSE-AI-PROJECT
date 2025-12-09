@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createClient } from '@supabase/supabase-js';
 import { computeDailyAggregates } from '@/lib/services/aggregation-service';
 import { updateUserAIProfile, getUserAIProfile } from '@/lib/services/personalization-service';
-import { generateScheduleWithFallback } from '@/lib/ai/schedule-generator';
+import { generateDailySchedule } from '@/lib/ai/schedule-generator';
 import { getRecentAggregates } from '@/lib/services/aggregation-service';
 import { logAIEvent, logAIError } from '@/lib/ai/logger';
 import type { ScheduleContext, Task, Goal } from '@/lib/ai/types';
@@ -12,11 +12,11 @@ import { getDefaultProfile } from '@/lib/ai/types';
 function createServiceClient() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
-  
+
   if (!supabaseUrl || !supabaseServiceKey) {
     throw new Error('Missing Supabase configuration for service client');
   }
-  
+
   return createClient(supabaseUrl, supabaseServiceKey, {
     auth: {
       autoRefreshToken: false,
@@ -64,10 +64,10 @@ export async function GET(request: NextRequest) {
     }
 
     if (!users || users.length === 0) {
-      return NextResponse.json({ 
-        success: true, 
+      return NextResponse.json({
+        success: true,
         message: 'No active users to process',
-        processed: 0 
+        processed: 0
       });
     }
 
@@ -90,7 +90,10 @@ export async function GET(request: NextRequest) {
 
         // Step 3: Build context and generate today's schedule
         const context = await buildScheduleContextForUser(supabase, user);
-        const schedule = await generateScheduleWithFallback(user.id, context);
+        const schedule = await generateDailySchedule({
+          tasks: context.todaysTasks,
+          focusDuration: context.profile.optimal_focus_duration || 25,
+        });
 
         // Step 4: Store the plan
         const { error: upsertError } = await supabase
@@ -98,10 +101,10 @@ export async function GET(request: NextRequest) {
           .upsert({
             user_id: user.id,
             plan_date: todayStr,
-            schedule: schedule.schedule,
-            explanation: schedule.explanation,
-            reasoning: schedule.reasoning,
-            model_version: schedule.modelVersion,
+            schedule: schedule,
+            explanation: 'AI-generated schedule based on your tasks.',
+            reasoning: {},
+            model_version: 'gemini-2.5-flash',
             status: 'pending',
             generated_at: new Date().toISOString(),
           }, { onConflict: 'user_id,plan_date' });
@@ -111,9 +114,9 @@ export async function GET(request: NextRequest) {
         }
 
         results.push({ userId: user.id, status: 'success' });
-        logAIEvent('user_processed_success', { 
-          userId: user.id, 
-          scheduleItems: schedule.schedule.length 
+        logAIEvent('user_processed_success', {
+          userId: user.id,
+          scheduleItems: schedule.length
         });
 
       } catch (userError) {
@@ -146,8 +149,8 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     const latency = Date.now() - startTime;
     logAIError(error as Error, { operation: 'daily_brain', latencyMs: latency });
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       error: (error as Error).message,
       latencyMs: latency,
     }, { status: 500 });

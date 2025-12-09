@@ -7,7 +7,6 @@ import { Button } from "@/components/ui/button"
 import { Sparkles, Check, RotateCcw, AlertCircle, Coffee, Briefcase, Users } from "lucide-react"
 import { generateDailySchedule } from "@/lib/ai/schedule-generator"
 import type { ScheduleItem } from "@/lib/store"
-import MoodPromptDialog from "./mood-prompt-dialog"
 
 export default function DayPlanner() {
   const { tasks, currentSchedule, setCurrentSchedule, acceptSchedule, moodEntries, userPreferences, acceptedSchedules } = useStore()
@@ -20,9 +19,7 @@ export default function DayPlanner() {
   const [schedule, setSchedule] = useState<ScheduleItem[]>(todayAcceptedSchedule?.schedule || currentSchedule || [])
   const [isGenerating, setIsGenerating] = useState(false)
   const [scheduleAccepted, setScheduleAccepted] = useState(false)
-  const [showMoodPrompt, setShowMoodPrompt] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [justLoggedMood, setJustLoggedMood] = useState(false)
 
   // Update schedule when accepted schedule changes
   useEffect(() => {
@@ -47,47 +44,6 @@ export default function DayPlanner() {
   }, [moodEntries])
 
   const generateSchedule = async () => {
-    // Check if mood is logged (but skip if we just logged it)
-    if (!todayMood && !justLoggedMood) {
-      setShowMoodPrompt(true)
-      return
-    }
-
-    // If we just logged mood but it's not in store yet, wait a bit more
-    if (justLoggedMood && !todayMood) {
-      // Wait for store to update
-      await new Promise(resolve => setTimeout(resolve, 500))
-      // Re-check mood after waiting
-      const updatedMood = moodEntries.find((entry) => {
-        const today = new Date()
-        today.setHours(0, 0, 0, 0)
-        const entryDate = new Date(entry.date)
-        entryDate.setHours(0, 0, 0, 0)
-        return entryDate.getTime() === today.getTime()
-      })
-
-      if (!updatedMood) {
-        setError("Mood entry not found. Please try again.")
-        setJustLoggedMood(false)
-        return
-      }
-    }
-
-    // Final check - we need mood to proceed
-    const moodToUse = todayMood || moodEntries.find((entry) => {
-      const today = new Date()
-      today.setHours(0, 0, 0, 0)
-      const entryDate = new Date(entry.date)
-      entryDate.setHours(0, 0, 0, 0)
-      return entryDate.getTime() === today.getTime()
-    })
-
-    if (!moodToUse) {
-      setError("Mood entry is required to generate schedule.")
-      setJustLoggedMood(false)
-      return
-    }
-
     // Check if there are tasks
     const incompleteTasks = tasks.filter((t) => !t.completed)
     if (incompleteTasks.length === 0) {
@@ -101,10 +57,15 @@ export default function DayPlanner() {
 
     try {
       const todayClasses = getTodayClasses()
+
+      // Use logged mood or default to neutral if not yet logged (though global check should catch this)
+      const mood = todayMood?.mood || "neutral"
+      const moodNotes = todayMood?.notes || ""
+
       const aiSchedule = await generateDailySchedule({
         tasks: incompleteTasks,
-        mood: moodToUse.mood,
-        moodNotes: moodToUse.notes,
+        mood,
+        moodNotes,
         focusDuration: userPreferences.focusDuration,
         weeklySchedule: todayClasses,
       })
@@ -123,19 +84,6 @@ export default function DayPlanner() {
     } finally {
       setIsGenerating(false)
     }
-  }
-
-  const handleMoodLogged = () => {
-    // Mark that we just logged mood to prevent double prompt
-    setJustLoggedMood(true)
-    setShowMoodPrompt(false)
-
-    // After mood is logged, generate schedule
-    // Wait a bit longer to ensure store is updated
-    setTimeout(() => {
-      generateSchedule()
-      setJustLoggedMood(false)
-    }, 1000)
   }
 
   const handleAcceptSchedule = () => {
@@ -257,7 +205,7 @@ export default function DayPlanner() {
                     <div key={idx}>
                       <div
                         className={`p-6 rounded-lg border-2 transition-all hover:shadow-lg ${isBreak ? "border-blue-500/30 bg-blue-500/5" :
-                            priorityColor[item.priority as keyof typeof priorityColor]
+                          priorityColor[item.priority as keyof typeof priorityColor]
                           }`}
                       >
                         <div className="flex items-start justify-between">
@@ -270,10 +218,10 @@ export default function DayPlanner() {
                               {!isBreak && (
                                 <span
                                   className={`text-xs px-2 py-1 rounded ${item.priority === "high"
-                                      ? "bg-red-500/20 text-red-600"
-                                      : item.priority === "medium"
-                                        ? "bg-yellow-500/20 text-yellow-600"
-                                        : "bg-green-500/20 text-green-600"
+                                    ? "bg-red-500/20 text-red-600"
+                                    : item.priority === "medium"
+                                      ? "bg-yellow-500/20 text-yellow-600"
+                                      : "bg-green-500/20 text-green-600"
                                     }`}
                                 >
                                   {item.priority}
@@ -352,16 +300,6 @@ export default function DayPlanner() {
           </ul>
         </Card>
       </div>
-
-      {/* Mood Prompt Dialog */}
-      <MoodPromptDialog
-        isOpen={showMoodPrompt && !justLoggedMood}
-        onClose={() => {
-          setShowMoodPrompt(false)
-          setJustLoggedMood(false)
-        }}
-        onMoodLogged={handleMoodLogged}
-      />
     </div>
   )
 }

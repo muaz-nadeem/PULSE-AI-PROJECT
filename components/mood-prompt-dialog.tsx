@@ -10,6 +10,9 @@ interface MoodPromptDialogProps {
   isOpen: boolean
   onClose: () => void
   onMoodLogged: () => void
+  title?: string
+  description?: string
+  submitLabel?: string
 }
 
 const moodOptions = [
@@ -20,7 +23,14 @@ const moodOptions = [
   { value: "very-sad", emoji: "😫", label: "Very Sad" },
 ]
 
-export default function MoodPromptDialog({ isOpen, onClose, onMoodLogged }: MoodPromptDialogProps) {
+export default function MoodPromptDialog({
+  isOpen,
+  onClose,
+  onMoodLogged,
+  title = "Log Your Mood First",
+  description = "To generate the best schedule for you, we need to know how you're feeling today. This helps the AI create a plan that matches your energy and mood.",
+  submitLabel = "Log Mood & Generate Schedule"
+}: MoodPromptDialogProps) {
   const { addMoodEntry, setCurrentPage } = useStore()
   const [selectedMood, setSelectedMood] = useState<string | null>(null)
   const [notes, setNotes] = useState("")
@@ -49,7 +59,7 @@ export default function MoodPromptDialog({ isOpen, onClose, onMoodLogged }: Mood
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Heart className="w-5 h-5 text-primary" />
-            <h2 className="text-xl font-bold text-foreground">Log Your Mood First</h2>
+            <h2 className="text-xl font-bold text-foreground">{title}</h2>
           </div>
           <button
             onClick={onClose}
@@ -60,7 +70,7 @@ export default function MoodPromptDialog({ isOpen, onClose, onMoodLogged }: Mood
         </div>
 
         <p className="text-sm text-muted-foreground mb-6">
-          To generate the best schedule for you, we need to know how you're feeling today. This helps the AI create a plan that matches your energy and mood.
+          {description}
         </p>
 
         {/* Mood Selection */}
@@ -71,11 +81,10 @@ export default function MoodPromptDialog({ isOpen, onClose, onMoodLogged }: Mood
               <button
                 key={option.value}
                 onClick={() => setSelectedMood(option.value)}
-                className={`flex flex-col items-center gap-1 p-3 rounded-lg transition-all ${
-                  selectedMood === option.value
+                className={`flex flex-col items-center gap-1 p-3 rounded-lg transition-all ${selectedMood === option.value
                     ? "bg-primary text-white scale-105"
                     : "bg-secondary hover:bg-secondary/80 text-foreground"
-                }`}
+                  }`}
               >
                 <span className="text-2xl">{option.emoji}</span>
                 <span className="text-xs font-medium">{option.label}</span>
@@ -109,12 +118,10 @@ export default function MoodPromptDialog({ isOpen, onClose, onMoodLogged }: Mood
             disabled={!selectedMood}
             className="flex-1 bg-primary hover:bg-primary/90"
           >
-            Log Mood & Generate Schedule
+            {submitLabel}
           </Button>
         </div>
       </div>
     </div>
   )
 }
-
-

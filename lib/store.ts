@@ -278,7 +278,7 @@ interface StoreState {
   // Settings
   setSettings: (settings: Partial<UserSettings>) => void
   setUserData: (name: string, goals: string[], role?: string) => void
-  
+
   // Blocking Settings
   blockingSettings: BlockingSettings
   setBlockingMode: (mode: "strict" | "standard" | "relaxed") => void
@@ -327,6 +327,11 @@ interface StoreState {
   deleteTimeBlock: (id: string) => void
   getTimeBlocksForDate: (date: string) => TimeBlock[]
   moveTimeBlock: (id: string, newDate: string, newStartTime: string) => void
+
+  // Weekly Class Schedule
+  weeklyClassSchedule: WeeklyClassSchedule | null
+  setWeeklyClassSchedule: (schedule: WeeklyClassSchedule) => void
+  getTodayClasses: () => Array<{ time: string; className: string }>
 
   // Focus Sounds
   soundPresets: SoundPreset[]
@@ -560,7 +565,7 @@ export const useStore = create<StoreState>((set, get) => ({
         category: task.category,
         focus_mode: task.focusMode || false,
       }
-      
+
       // Convert dueDate to ISO string if provided
       if (task.dueDate) {
         // If it's already a string in YYYY-MM-DD format, convert to ISO datetime
@@ -569,9 +574,9 @@ export const useStore = create<StoreState>((set, get) => ({
           apiData.due_date = dueDate.toISOString()
         }
       }
-      
+
       const created = (await api.tasksAPI.create(apiData)) as any
-      
+
       // Add to store with proper field mapping
       set((state) => ({
         tasks: [
@@ -647,7 +652,7 @@ export const useStore = create<StoreState>((set, get) => ({
       if (updates.description !== undefined) apiUpdates.description = updates.description
       if (updates.priority !== undefined) apiUpdates.priority = updates.priority
       if (updates.category !== undefined) apiUpdates.category = updates.category
-      
+
       await api.tasksAPI.update(id, apiUpdates)
     } catch (error) {
       console.error("Failed to update task in API:", error)
@@ -664,7 +669,7 @@ export const useStore = create<StoreState>((set, get) => ({
     } catch (error) {
       console.error("Failed to create focus session in API:", error)
     }
-    
+
     set((state) => {
       const newSession: FocusSession = {
         id: Math.random().toString(36).substring(7),
@@ -743,14 +748,14 @@ export const useStore = create<StoreState>((set, get) => ({
     set((state) => {
       const today = new Date()
       today.setHours(0, 0, 0, 0)
-      
+
       // Check if mood already exists for today
       const todayMoodExists = state.moodEntries.some((entry) => {
         const entryDate = new Date(entry.date)
         entryDate.setHours(0, 0, 0, 0)
         return entryDate.getTime() === today.getTime()
       })
-      
+
       if (todayMoodExists) {
         // Update existing mood entry for today
         return {
@@ -769,7 +774,7 @@ export const useStore = create<StoreState>((set, get) => ({
           }),
         }
       }
-      
+
       // Create new entry if none exists for today
       const newEntry: MoodEntry = {
         id: Math.random().toString(36).substring(7),
@@ -830,7 +835,7 @@ export const useStore = create<StoreState>((set, get) => ({
         // Calculate current streak
         const sortedDates = [...newCompletedDates].sort().reverse()
         let checkDate = new Date(today)
-        
+
         for (const dateStr of sortedDates) {
           const checkDateStr = checkDate.toISOString().split("T")[0]
           if (dateStr === checkDateStr) {
@@ -866,11 +871,11 @@ export const useStore = create<StoreState>((set, get) => ({
         habits: state.habits.map((h) =>
           h.id === habitId
             ? {
-                ...h,
-                completedDates: newCompletedDates,
-                currentStreak,
-                longestStreak,
-              }
+              ...h,
+              completedDates: newCompletedDates,
+              currentStreak,
+              longestStreak,
+            }
             : h
         ),
       }
@@ -908,7 +913,7 @@ export const useStore = create<StoreState>((set, get) => ({
       if (!goal) return state
 
       const updatedGoal = { ...goal, ...updates }
-      
+
       // Recalculate progress if milestones changed
       if (updates.milestones !== undefined) {
         const completedMilestones = updatedGoal.milestones.filter((m) => m.completed).length
@@ -948,11 +953,11 @@ export const useStore = create<StoreState>((set, get) => ({
         goals: state.goals.map((g) =>
           g.id === goalId
             ? {
-                ...g,
-                milestones: updatedMilestones,
-                progress,
-                status: progress === 100 && g.status === "active" ? "completed" : g.status,
-              }
+              ...g,
+              milestones: updatedMilestones,
+              progress,
+              status: progress === 100 && g.status === "active" ? "completed" : g.status,
+            }
             : g
         ),
       }
@@ -973,11 +978,11 @@ export const useStore = create<StoreState>((set, get) => ({
         goals: state.goals.map((g) =>
           g.id === goalId
             ? {
-                ...g,
-                milestones: updatedMilestones,
-                progress,
-                status: progress === 100 && g.status === "active" ? "completed" : g.status,
-              }
+              ...g,
+              milestones: updatedMilestones,
+              progress,
+              status: progress === 100 && g.status === "active" ? "completed" : g.status,
+            }
             : g
         ),
       }
@@ -996,10 +1001,10 @@ export const useStore = create<StoreState>((set, get) => ({
         goals: state.goals.map((g) =>
           g.id === goalId
             ? {
-                ...g,
-                milestones: updatedMilestones,
-                progress,
-              }
+              ...g,
+              milestones: updatedMilestones,
+              progress,
+            }
             : g
         ),
       }
@@ -1029,11 +1034,11 @@ export const useStore = create<StoreState>((set, get) => ({
         goals: state.goals.map((g) =>
           g.id === goalId
             ? {
-                ...g,
-                milestones: updatedMilestones,
-                progress,
-                status: progress === 100 && g.status === "active" ? "completed" : g.status,
-              }
+              ...g,
+              milestones: updatedMilestones,
+              progress,
+              status: progress === 100 && g.status === "active" ? "completed" : g.status,
+            }
             : g
         ),
       }
@@ -1074,7 +1079,7 @@ export const useStore = create<StoreState>((set, get) => ({
     }
 
     // Task integration suggestions
-    const relatedTasks = state.tasks.filter((t) => 
+    const relatedTasks = state.tasks.filter((t) =>
       t.title.toLowerCase().includes(goal.title.toLowerCase().split(" ")[0].toLowerCase()) ||
       goal.title.toLowerCase().includes(t.title.toLowerCase().split(" ")[0].toLowerCase())
     )
@@ -1093,7 +1098,7 @@ export const useStore = create<StoreState>((set, get) => ({
       const today = new Date()
       const daysRemaining = Math.ceil((targetDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
       const milestonesRemaining = totalMilestones - completedMilestones
-      
+
       if (daysRemaining > 0 && milestonesRemaining > 0) {
         const dailyMilestoneRate = milestonesRemaining / daysRemaining
         if (dailyMilestoneRate > 0.5) {
@@ -1231,10 +1236,10 @@ export const useStore = create<StoreState>((set, get) => ({
         challenges: state.challenges.map((c) =>
           c.id === challengeId
             ? {
-                ...c,
-                current,
-                completed,
-              }
+              ...c,
+              current,
+              completed,
+            }
             : c
         ),
       }
@@ -1345,20 +1350,25 @@ export const useStore = create<StoreState>((set, get) => ({
   acceptSchedule: (date?: string) => {
     const today = date || new Date().toISOString().split("T")[0]
     const state = get()
-    
+
     // Remove any existing schedule for this date
     const filteredSchedules = state.acceptedSchedules.filter((s) => s.date !== today)
-    
+
     // Add the new schedule
     const newAcceptedSchedule: AcceptedSchedule = {
       date: today,
       schedule: state.currentSchedule,
     }
-    
+
     set({
       acceptedSchedules: [...filteredSchedules, newAcceptedSchedule],
+      // Clear existing time blocks for this day to avoid duplicates when overwriting schedule
+      timeBlocks: state.timeBlocks.filter(b => b.date !== today)
     })
-    
+
+    // Re-fetch state after update to ensure we have clean slate (though we just set it)
+    const updatedState = get()
+
     // Convert schedule items to time blocks
     state.currentSchedule.forEach((item) => {
       const [startH, startM] = item.time.split(":").map(Number)
@@ -1367,20 +1377,21 @@ export const useStore = create<StoreState>((set, get) => ({
       const endH = Math.floor(endMinutes / 60)
       const endM = endMinutes % 60
       const endTime = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`
-      
+
       // Determine color based on priority
       const colorMap = {
         high: "bg-red-500",
         medium: "bg-yellow-500",
         low: "bg-green-500",
       }
-      
-      state.addTimeBlock({
+
+      // Use the action to add blocks
+      updatedState.addTimeBlock({
         title: item.task,
         startTime: item.time,
         endTime: endTime,
         date: today,
-        color: colorMap[item.priority] || "bg-blue-500",
+        color: colorMap[item.priority as keyof typeof colorMap] || "bg-blue-500",
         notes: `Priority: ${item.priority}`,
       })
     })
@@ -1439,11 +1450,11 @@ export const useStore = create<StoreState>((set, get) => ({
         timeBlocks: state.timeBlocks.map((b) =>
           b.id === id
             ? {
-                ...b,
-                date: newDate,
-                startTime: newStartTime,
-                endTime: newEndTime,
-              }
+              ...b,
+              date: newDate,
+              startTime: newStartTime,
+              endTime: newEndTime,
+            }
             : b
         ),
       }
@@ -1481,8 +1492,8 @@ export const useStore = create<StoreState>((set, get) => ({
               const classes: Array<{ time: string; className: string }> = []
 
               Object.entries(todaySchedule).forEach(([timeSlot, className]) => {
-                if (className && className.trim()) {
-                  classes.push({ time: timeSlot, className: className.trim() })
+                if (className && (className as string).trim()) {
+                  classes.push({ time: timeSlot, className: (className as string).trim() })
                 }
               })
 
@@ -1510,8 +1521,8 @@ export const useStore = create<StoreState>((set, get) => ({
     const classes: Array<{ time: string; className: string }> = []
 
     Object.entries(todaySchedule).forEach(([timeSlot, className]) => {
-      if (className && className.trim()) {
-        classes.push({ time: timeSlot, className: className.trim() })
+      if (className && (className as string).trim()) {
+        classes.push({ time: timeSlot, className: (className as string).trim() })
       }
     })
 
@@ -1719,9 +1730,9 @@ For detailed analytics, visit the Analytics dashboard.
           sharedGoals: state.sharedGoals.map((sg) =>
             sg.goalId === goalId
               ? {
-                  ...sg,
-                  sharedWith: [...new Set([...sg.sharedWith, ...memberIds])],
-                }
+                ...sg,
+                sharedWith: [...new Set([...sg.sharedWith, ...memberIds])],
+              }
               : sg
           ),
         }
@@ -1947,28 +1958,28 @@ For detailed analytics, visit the Analytics dashboard.
 
   // AI Features - Actions
   setCurrentAIPlan: (plan) => set({ currentAIPlan: plan }),
-  
+
   setUserAIProfile: (profile) => set({ userAIProfile: profile }),
-  
+
   setAIPlanLoading: (loading) => set({ aiPlanLoading: loading }),
-  
+
   setAIPlanError: (error) => set({ aiPlanError: error }),
 
   acceptAIPlan: async () => {
     const state = get()
     if (!state.currentAIPlan) return
-    
+
     try {
       const api = await import("./api")
       await api.aiAPI.acceptPlan(state.currentAIPlan.id)
-      
+
       set({
         currentAIPlan: {
           ...state.currentAIPlan,
           status: "accepted",
         },
       })
-      
+
       // Also accept schedule to history
       state.acceptSchedule()
     } catch (error) {
@@ -1980,11 +1991,11 @@ For detailed analytics, visit the Analytics dashboard.
   rejectAIPlan: async () => {
     const state = get()
     if (!state.currentAIPlan) return
-    
+
     try {
       const api = await import("./api")
       await api.aiAPI.rejectPlan(state.currentAIPlan.id)
-      
+
       set({
         currentAIPlan: {
           ...state.currentAIPlan,

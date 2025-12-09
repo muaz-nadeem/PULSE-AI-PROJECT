@@ -10,6 +10,7 @@ import TaskList from "./task-list"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Settings } from "lucide-react"
+import WeeklyClassSchedule from "./weekly-class-schedule"
 
 export default function Dashboard() {
   const { tasks, toggleTask, userPreferences, setSettings, userName, userData } = useStore()
@@ -118,6 +119,7 @@ export default function Dashboard() {
             <div className="lg:col-span-2 space-y-6">
               <FocusSession />
               <TodayPlan />
+              <WeeklyClassSchedule />
             </div>
 
             {/* Right column - Tasks */}

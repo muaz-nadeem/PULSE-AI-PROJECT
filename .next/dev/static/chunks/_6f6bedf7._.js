@@ -174,6 +174,11 @@ const useStore = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_module
             isAuthenticated: false,
             userEmail: ""
         },
+        // AI Features - Initial State
+        currentAIPlan: null,
+        userAIProfile: null,
+        aiPlanLoading: false,
+        aiPlanError: null,
         addTask: async (task)=>{
             try {
                 const api = await __turbopack_context__.A("[project]/lib/api.ts [app-client] (ecmascript, async loader)");
@@ -1340,8 +1345,65 @@ For detailed analytics, visit the Analytics dashboard.
                 distractions: [],
                 challenges: [],
                 timeBlocks: [],
-                notifications: []
+                notifications: [],
+                currentAIPlan: null,
+                userAIProfile: null,
+                aiPlanLoading: false,
+                aiPlanError: null
             });
+        },
+        // AI Features - Actions
+        setCurrentAIPlan: (plan)=>set({
+                currentAIPlan: plan
+            }),
+        setUserAIProfile: (profile)=>set({
+                userAIProfile: profile
+            }),
+        setAIPlanLoading: (loading)=>set({
+                aiPlanLoading: loading
+            }),
+        setAIPlanError: (error)=>set({
+                aiPlanError: error
+            }),
+        acceptAIPlan: async ()=>{
+            const state = get();
+            if (!state.currentAIPlan) return;
+            try {
+                const api = await __turbopack_context__.A("[project]/lib/api.ts [app-client] (ecmascript, async loader)");
+                await api.aiAPI.acceptPlan(state.currentAIPlan.id);
+                set({
+                    currentAIPlan: {
+                        ...state.currentAIPlan,
+                        status: "accepted"
+                    }
+                });
+                // Also accept schedule to history
+                state.acceptSchedule();
+            } catch (error) {
+                console.error("Failed to accept AI plan:", error);
+                set({
+                    aiPlanError: "Failed to accept plan"
+                });
+            }
+        },
+        rejectAIPlan: async ()=>{
+            const state = get();
+            if (!state.currentAIPlan) return;
+            try {
+                const api = await __turbopack_context__.A("[project]/lib/api.ts [app-client] (ecmascript, async loader)");
+                await api.aiAPI.rejectPlan(state.currentAIPlan.id);
+                set({
+                    currentAIPlan: {
+                        ...state.currentAIPlan,
+                        status: "rejected"
+                    }
+                });
+            } catch (error) {
+                console.error("Failed to reject AI plan:", error);
+                set({
+                    aiPlanError: "Failed to reject plan"
+                });
+            }
         }
     }));
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
@@ -1380,6 +1442,8 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "use strict";
 
 __turbopack_context__.s([
+    "aiAPI",
+    ()=>aiAPI,
     "authAPI",
     ()=>authAPI,
     "focusSessionsAPI",
@@ -1703,6 +1767,157 @@ const focusSessionsAPI = {
         };
     }
 };
+const aiAPI = {
+    /**
+   * Fetches today's AI-generated plan for the current user.
+   */ async getDailyPlan (date) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_plans").select("*").eq("user_id", user.id).eq("plan_date", date).single();
+        // PGRST116 means no rows found - that's okay, return null
+        if (error && error.code !== "PGRST116") {
+            handleSupabaseError(error);
+        }
+        return data || null;
+    },
+    /**
+   * Marks a plan as accepted.
+   */ async acceptPlan (planId) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_plans").update({
+            status: "accepted",
+            accepted_at: new Date().toISOString()
+        }).eq("id", planId).eq("user_id", user.id);
+        if (error) handleSupabaseError(error);
+        // Log feedback event
+        await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("plan_feedback_events").insert({
+            plan_id: planId,
+            user_id: user.id,
+            event_type: "accepted"
+        });
+    },
+    /**
+   * Marks a plan as rejected.
+   */ async rejectPlan (planId) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_plans").update({
+            status: "rejected",
+            rejected_at: new Date().toISOString()
+        }).eq("id", planId).eq("user_id", user.id);
+        if (error) handleSupabaseError(error);
+        // Log feedback event
+        await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("plan_feedback_events").insert({
+            plan_id: planId,
+            user_id: user.id,
+            event_type: "rejected"
+        });
+    },
+    /**
+   * Updates a plan's schedule (when user edits it).
+   */ async updatePlanSchedule (planId, newSchedule) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        // First get current plan to store original
+        const { data: plan } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_plans").select("schedule, edit_count").eq("id", planId).eq("user_id", user.id).single();
+        const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_plans").update({
+            schedule: newSchedule,
+            original_schedule: plan?.schedule || null,
+            status: "edited",
+            edit_count: (plan?.edit_count || 0) + 1,
+            last_edited_at: new Date().toISOString()
+        }).eq("id", planId).eq("user_id", user.id);
+        if (error) handleSupabaseError(error);
+        // Log feedback event
+        await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("plan_feedback_events").insert({
+            plan_id: planId,
+            user_id: user.id,
+            event_type: "edited",
+            event_data: {
+                editCount: (plan?.edit_count || 0) + 1
+            }
+        });
+    },
+    /**
+   * Logs a feedback event for task completion within a plan.
+   */ async logPlanTaskCompletion (planId, taskId) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("plan_feedback_events").insert({
+            plan_id: planId,
+            user_id: user.id,
+            event_type: "task_completed",
+            event_data: {
+                taskId
+            }
+        });
+    },
+    /**
+   * Fetches recent chat history for the AI coach.
+   */ async getChatHistory (limit = 20) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_chat_history").select("*").eq("user_id", user.id).order("created_at", {
+            ascending: false
+        }).limit(limit);
+        if (error) handleSupabaseError(error);
+        return data || [];
+    },
+    /**
+   * Saves a chat message to history.
+   */ async saveChatMessage (role, message, context) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("ai_chat_history").insert({
+            user_id: user.id,
+            role,
+            message,
+            context_snapshot: context || null
+        });
+        if (error) handleSupabaseError(error);
+    },
+    /**
+   * Fetches the user's AI profile (personalization data).
+   */ async getUserAIProfile () {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("user_ai_profiles").select("*").eq("user_id", user.id).single();
+        if (error && error.code !== "PGRST116") {
+            handleSupabaseError(error);
+        }
+        return data || null;
+    },
+    /**
+   * Fetches recent daily aggregates.
+   */ async getRecentAggregates (days = 14) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const startDate = new Date();
+        startDate.setDate(startDate.getDate() - days);
+        const startDateStr = startDate.toISOString().split("T")[0];
+        const { data, error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("daily_aggregates").select("*").eq("user_id", user.id).gte("date", startDateStr).order("date", {
+            ascending: false
+        });
+        if (error) handleSupabaseError(error);
+        return data || [];
+    },
+    /**
+   * Updates daily rating for a specific date.
+   */ async updateDailyRating (date, rating) {
+        const { data: { user } } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const clampedRating = Math.max(1, Math.min(10, rating));
+        const { error } = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$supabase$2f$client$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["supabase"].from("daily_aggregates").upsert({
+            user_id: user.id,
+            date,
+            daily_rating: clampedRating
+        }, {
+            onConflict: "user_id,date"
+        });
+        if (error) handleSupabaseError(error);
+    }
+};
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {
     __turbopack_context__.k.registerExports(__turbopack_context__.m, globalThis.$RefreshHelpers$);
 }
@@ -1711,6 +1926,12 @@ if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelper
 "use strict";
 
 __turbopack_context__.s([
+    "regenerateAIPlan",
+    ()=>regenerateAIPlan,
+    "syncAIPlan",
+    ()=>syncAIPlan,
+    "syncAIProfile",
+    ()=>syncAIProfile,
     "syncStoreWithAPI",
     ()=>syncStoreWithAPI
 ]);
@@ -1757,9 +1978,95 @@ async function syncStoreWithAPI() {
         } catch (error) {
             console.error("Failed to sync focus sessions:", error);
         }
+        // Sync AI plan
+        try {
+            await syncAIPlan();
+        } catch (error) {
+            console.error("Failed to sync AI plan:", error);
+        }
+        // Sync AI profile
+        try {
+            await syncAIProfile();
+        } catch (error) {
+            console.error("Failed to sync AI profile:", error);
+        }
     } catch (error) {
         console.error("Failed to sync store with API:", error);
     // Don't throw - allow app to continue with local state
+    }
+}
+async function syncAIPlan() {
+    try {
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanLoading: true,
+            aiPlanError: null
+        });
+        const today = new Date().toISOString().split("T")[0];
+        const plan = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["aiAPI"].getDailyPlan(today);
+        if (plan) {
+            __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+                currentAIPlan: plan,
+                currentSchedule: plan.schedule || []
+            });
+        }
+    } catch (error) {
+        console.error("Failed to sync AI plan:", error);
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanError: "Failed to load AI plan"
+        });
+    } finally{
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanLoading: false
+        });
+    }
+}
+async function syncAIProfile() {
+    try {
+        const profile = await __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$api$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["aiAPI"].getUserAIProfile();
+        if (profile) {
+            __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+                userAIProfile: {
+                    optimal_focus_duration: profile.optimal_focus_duration,
+                    preferred_work_start_hour: profile.preferred_work_start_hour,
+                    preferred_work_end_hour: profile.preferred_work_end_hour,
+                    most_productive_hours: profile.most_productive_hours || [],
+                    avg_plan_acceptance_rate: profile.avg_plan_acceptance_rate || 0
+                }
+            });
+        }
+    } catch (error) {
+        console.error("Failed to sync AI profile:", error);
+    // Non-critical - continue without profile
+    }
+}
+async function regenerateAIPlan() {
+    try {
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanLoading: true,
+            aiPlanError: null
+        });
+        const response = await fetch("/api/ai/generate-plan", {
+            method: "POST"
+        });
+        if (!response.ok) {
+            throw new Error("Failed to generate plan");
+        }
+        const data = await response.json();
+        if (data.plan) {
+            __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+                currentAIPlan: data.plan,
+                currentSchedule: data.plan.schedule || []
+            });
+        }
+    } catch (error) {
+        console.error("Failed to regenerate AI plan:", error);
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanError: "Failed to generate new plan"
+        });
+    } finally{
+        __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"].setState({
+            aiPlanLoading: false
+        });
     }
 }
 if (typeof globalThis.$RefreshHelpers$ === 'object' && globalThis.$RefreshHelpers !== null) {

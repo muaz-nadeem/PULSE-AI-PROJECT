@@ -23,7 +23,17 @@ export default function MoodTracker() {
   const handleSubmit = () => {
     if (!selectedMood) return
 
-    addMoodEntry(selectedMood as "excellent" | "good" | "neutral" | "sad" | "very-sad", notes)
+    // Check if mood already exists for today
+    if (todayMood) {
+      // Update existing mood
+      addMoodEntry(selectedMood as "excellent" | "good" | "neutral" | "sad" | "very-sad", notes)
+      setSelectedMood(todayMood.mood)
+      setNotes(todayMood.notes || "")
+    } else {
+      // Create new mood entry
+      addMoodEntry(selectedMood as "excellent" | "good" | "neutral" | "sad" | "very-sad", notes)
+    }
+    
     setSelectedMood(null)
     setNotes("")
     setSubmitted(true)
@@ -92,8 +102,14 @@ export default function MoodTracker() {
             disabled={!selectedMood}
             className="w-full bg-primary hover:bg-primary/90 text-white font-medium py-2"
           >
-            Submit
+            {todayMood ? "Update Mood" : "Submit"}
           </Button>
+          
+          {todayMood && (
+            <p className="text-xs text-muted-foreground text-center">
+              You've already logged your mood today. This will update it.
+            </p>
+          )}
 
           {/* Success Message */}
           {submitted && (

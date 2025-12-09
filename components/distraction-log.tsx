@@ -24,11 +24,17 @@ const COLORS = ["#3b82f6", "#8b5cf6", "#ec4899", "#f59e0b", "#10b981", "#ef4444"
 export default function DistractionLog() {
   const { distractions, addDistraction, deleteDistraction, getDistractionInsights, focusSessions } = useStore()
   const [showAddForm, setShowAddForm] = useState(false)
-  const [newDistraction, setNewDistraction] = useState({
-    type: "app" as Distraction["type"],
+  const [newDistraction, setNewDistraction] = useState<{
+    type: Distraction["type"]
+    source: string
+    duration: number
+    focusSessionId?: string
+    notes: string
+  }>({
+    type: "app",
     source: "",
     duration: 5,
-    focusSessionId: "",
+    focusSessionId: undefined,
     notes: "",
   })
 
@@ -48,7 +54,7 @@ export default function DistractionLog() {
         type: "app",
         source: "",
         duration: 5,
-        focusSessionId: "",
+        focusSessionId: undefined,
         notes: "",
       })
       setShowAddForm(false)
@@ -187,14 +193,14 @@ export default function DistractionLog() {
                 <div>
                   <label className="text-sm font-medium text-foreground mb-2 block">Focus Session (optional)</label>
                   <Select
-                    value={newDistraction.focusSessionId}
-                    onValueChange={(value) => setNewDistraction({ ...newDistraction, focusSessionId: value })}
+                    value={newDistraction.focusSessionId || "none"}
+                    onValueChange={(value) => setNewDistraction({ ...newDistraction, focusSessionId: value === "none" ? undefined : value })}
                   >
                     <SelectTrigger className="bg-secondary/50 border-border">
                       <SelectValue placeholder="Select session" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">None</SelectItem>
+                      <SelectItem value="none">None</SelectItem>
                       {focusSessions.slice(-5).map((session) => (
                         <SelectItem key={session.id} value={session.id}>
                           {new Date(session.date).toLocaleDateString()} - {session.duration} min

@@ -126,6 +126,11 @@ export interface UserAIProfile {
   avg_plan_acceptance_rate: number
 }
 
+export interface AcceptedSchedule {
+  date: string // YYYY-MM-DD format
+  schedule: ScheduleItem[]
+}
+
 export interface TimeBlock {
   id: string
   title: string
@@ -135,6 +140,15 @@ export interface TimeBlock {
   taskId?: string
   color: string
   notes?: string
+}
+
+export interface WeeklyClassSchedule {
+  // Format: { [dayOfWeek]: { [timeSlot]: string } }
+  // dayOfWeek: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday"
+  // timeSlot: "08:00-08:50" | "09:00-09:50" | etc.
+  // value: class name or empty string
+  schedule: Record<string, Record<string, string>>
+  imageUrl?: string // If uploaded as image
 }
 
 export interface SoundPreset {
@@ -300,10 +314,11 @@ interface StoreState {
 
   // Schedule
   currentSchedule: ScheduleItem[]
-  acceptedSchedules: ScheduleItem[][]
+  acceptedSchedules: AcceptedSchedule[]
   setCurrentSchedule: (schedule: ScheduleItem[]) => void
-  acceptSchedule: () => void
-  getAcceptedSchedules: () => ScheduleItem[][]
+  acceptSchedule: (date?: string) => void
+  getAcceptedSchedules: () => AcceptedSchedule[]
+  getTodayAcceptedSchedule: () => ScheduleItem[] | null
 
   // Time Blocks
   timeBlocks: TimeBlock[]
@@ -473,8 +488,9 @@ export const useStore = create<StoreState>((set, get) => ({
   habits: [],
   goals: [],
   currentSchedule: [],
-  acceptedSchedules: [],
+  acceptedSchedules: [] as AcceptedSchedule[],
   timeBlocks: [],
+  weeklyClassSchedule: null,
   soundPresets: [
     {
       id: "white_noise_1",
@@ -725,6 +741,36 @@ export const useStore = create<StoreState>((set, get) => ({
 
   addMoodEntry: (mood, notes) =>
     set((state) => {
+      const today = new Date()
+      today.setHours(0, 0, 0, 0)
+      
+      // Check if mood already exists for today
+      const todayMoodExists = state.moodEntries.some((entry) => {
+        const entryDate = new Date(entry.date)
+        entryDate.setHours(0, 0, 0, 0)
+        return entryDate.getTime() === today.getTime()
+      })
+      
+      if (todayMoodExists) {
+        // Update existing mood entry for today
+        return {
+          moodEntries: state.moodEntries.map((entry) => {
+            const entryDate = new Date(entry.date)
+            entryDate.setHours(0, 0, 0, 0)
+            if (entryDate.getTime() === today.getTime()) {
+              return {
+                ...entry,
+                mood,
+                notes,
+                date: new Date(), // Update timestamp
+              }
+            }
+            return entry
+          }),
+        }
+      }
+      
+      // Create new entry if none exists for today
       const newEntry: MoodEntry = {
         id: Math.random().toString(36).substring(7),
         mood,
@@ -1296,14 +1342,60 @@ export const useStore = create<StoreState>((set, get) => ({
       currentSchedule: schedule,
     }),
 
-  acceptSchedule: () =>
-    set((state) => ({
-      acceptedSchedules: [...state.acceptedSchedules, state.currentSchedule],
-    })),
+  acceptSchedule: (date?: string) => {
+    const today = date || new Date().toISOString().split("T")[0]
+    const state = get()
+    
+    // Remove any existing schedule for this date
+    const filteredSchedules = state.acceptedSchedules.filter((s) => s.date !== today)
+    
+    // Add the new schedule
+    const newAcceptedSchedule: AcceptedSchedule = {
+      date: today,
+      schedule: state.currentSchedule,
+    }
+    
+    set({
+      acceptedSchedules: [...filteredSchedules, newAcceptedSchedule],
+    })
+    
+    // Convert schedule items to time blocks
+    state.currentSchedule.forEach((item) => {
+      const [startH, startM] = item.time.split(":").map(Number)
+      const startMinutes = startH * 60 + startM
+      const endMinutes = startMinutes + item.duration
+      const endH = Math.floor(endMinutes / 60)
+      const endM = endMinutes % 60
+      const endTime = `${endH.toString().padStart(2, "0")}:${endM.toString().padStart(2, "0")}`
+      
+      // Determine color based on priority
+      const colorMap = {
+        high: "bg-red-500",
+        medium: "bg-yellow-500",
+        low: "bg-green-500",
+      }
+      
+      state.addTimeBlock({
+        title: item.task,
+        startTime: item.time,
+        endTime: endTime,
+        date: today,
+        color: colorMap[item.priority] || "bg-blue-500",
+        notes: `Priority: ${item.priority}`,
+      })
+    })
+  },
 
   getAcceptedSchedules: () => {
     const state = get()
     return state.acceptedSchedules
+  },
+
+  getTodayAcceptedSchedule: () => {
+    const state = get()
+    const today = new Date().toISOString().split("T")[0]
+    const todaySchedule = state.acceptedSchedules.find((s) => s.date === today)
+    return todaySchedule ? todaySchedule.schedule : null
   },
 
   addTimeBlock: (block) =>
@@ -1356,6 +1448,82 @@ export const useStore = create<StoreState>((set, get) => ({
         ),
       }
     }),
+
+  setWeeklyClassSchedule: (schedule) => {
+    set({ weeklyClassSchedule: schedule })
+    // Persist to localStorage
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("weeklyClassSchedule", JSON.stringify(schedule))
+      } catch (error) {
+        console.error("Failed to save weekly schedule to localStorage:", error)
+      }
+    }
+  },
+
+  getTodayClasses: () => {
+    const state = get()
+    if (!state.weeklyClassSchedule) {
+      // Try to load from localStorage
+      if (typeof window !== "undefined") {
+        try {
+          const stored = localStorage.getItem("weeklyClassSchedule")
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            set({ weeklyClassSchedule: parsed })
+            // Recursively call to process the loaded schedule
+            const updatedState = get()
+            if (updatedState.weeklyClassSchedule) {
+              const today = new Date()
+              const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+              const todayName = dayNames[today.getDay()].toLowerCase()
+              const todaySchedule = updatedState.weeklyClassSchedule.schedule[todayName] || {}
+              const classes: Array<{ time: string; className: string }> = []
+
+              Object.entries(todaySchedule).forEach(([timeSlot, className]) => {
+                if (className && className.trim()) {
+                  classes.push({ time: timeSlot, className: className.trim() })
+                }
+              })
+
+              classes.sort((a, b) => {
+                const aStart = a.time.split("-")[0]
+                const bStart = b.time.split("-")[0]
+                return aStart.localeCompare(bStart)
+              })
+
+              return classes
+            }
+          }
+        } catch (error) {
+          console.error("Failed to load weekly schedule from localStorage:", error)
+        }
+      }
+      return []
+    }
+
+    const today = new Date()
+    const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    const todayName = dayNames[today.getDay()].toLowerCase()
+
+    const todaySchedule = state.weeklyClassSchedule.schedule[todayName] || {}
+    const classes: Array<{ time: string; className: string }> = []
+
+    Object.entries(todaySchedule).forEach(([timeSlot, className]) => {
+      if (className && className.trim()) {
+        classes.push({ time: timeSlot, className: className.trim() })
+      }
+    })
+
+    // Sort by time
+    classes.sort((a, b) => {
+      const aStart = a.time.split("-")[0]
+      const bStart = b.time.split("-")[0]
+      return aStart.localeCompare(bStart)
+    })
+
+    return classes
+  },
 
   addSoundPreset: (preset) =>
     set((state) => {
@@ -1768,6 +1936,7 @@ For detailed analytics, visit the Analytics dashboard.
       distractions: [],
       challenges: [],
       timeBlocks: [],
+      weeklyClassSchedule: null,
       notifications: [],
       currentAIPlan: null,
       userAIProfile: null,

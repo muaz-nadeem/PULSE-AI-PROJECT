@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Site Blocked - PULSE AI</title>
+  <link rel="stylesheet" href="styles/blocked.css">
+</head>
+<body>
+  <div class="container">
+    <div class="blocked-content">
+      <div class="icon">🚫</div>
+      <h1>Site Blocked</h1>
+      <p class="domain" id="blockedDomain">Loading...</p>
+      
+      <div class="info-section">
+        <div class="info-item">
+          <span class="label">Blocking Mode:</span>
+          <span class="value" id="blockingMode">-</span>
+        </div>
+        <div class="info-item" id="timeRemainingSection" style="display: none;">
+          <span class="label">Time Remaining:</span>
+          <span class="value" id="timeRemaining">-</span>
+        </div>
+      </div>
+
+      <div class="message">
+        <p id="blockingMessage">This site is blocked during your scheduled study time.</p>
+      </div>
+
+      <div class="actions">
+        <button id="overrideBtn" class="btn btn-override" style="display: none;">
+          Override (10s delay)
+        </button>
+        <button id="goBackBtn" class="btn btn-primary">
+          Go Back
+        </button>
+        <a href="#" id="openAppBtn" class="btn btn-secondary">
+          Open PULSE App
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="blocked.js"></script>
+</body>
+</html>

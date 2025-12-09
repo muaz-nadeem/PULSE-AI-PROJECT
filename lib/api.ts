@@ -1,10 +1,36 @@
+/**
+ * API Module (Legacy)
+ * 
+ * This module provides backwards compatibility with the original API structure.
+ * New code should use the services layer directly from lib/services/index.ts
+ * 
+ * @deprecated Use services from lib/services instead
+ */
+
 import { supabase } from "./supabase/client"
 import type { Database } from "./supabase/types"
+
+// Import new services
+import {
+  authService,
+  taskService,
+  focusService,
+} from "./services"
 
 // Helper function to handle Supabase errors
 function handleSupabaseError(error: any): never {
   console.error("Supabase error:", error)
   throw new Error(error.message || "An error occurred")
+}
+
+/**
+ * Unwrap a ServiceResult, throwing on error
+ */
+function unwrapResult<T>(result: { data: T | null; error: string | null }): T {
+  if (result.error) {
+    throw new Error(result.error)
+  }
+  return result.data as T
 }
 
 // Auth API

@@ -2,67 +2,55 @@
 
 import { useState, useEffect } from "react"
 import { useStore } from "@/lib/store"
-import { aiAPI } from "@/lib/api"
+import { useAIPlan } from "@/lib/hooks"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Sparkles, Check, RotateCcw, ThumbsUp, ThumbsDown, Coffee, Briefcase, Users, AlertCircle } from "lucide-react"
-
-interface ScheduleItem {
-  time: string
-  duration: number
-  task: string
-  priority: "high" | "medium" | "low"
-  taskId?: string
-  type?: "work" | "break" | "meeting"
-}
-
-interface AIPlan {
-  id: string
-  plan_date: string
-  schedule: ScheduleItem[]
-  explanation: string | null
-  reasoning: Record<string, unknown> | null
-  status: "pending" | "accepted" | "rejected" | "edited" | "expired"
-  generated_at: string
-}
+import { Sparkles, Check, RotateCcw, ThumbsUp, ThumbsDown, Coffee, Briefcase, Users, AlertCircle, Calendar } from "lucide-react"
 
 export default function DayPlanner() {
-  const { tasks, currentSchedule, setCurrentSchedule, acceptSchedule } = useStore()
-  const [aiPlan, setAiPlan] = useState<AIPlan | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const { tasks, currentSchedule, setCurrentSchedule, acceptSchedule, scheduleSyncedFromTimeBlocks, clearTimeBlockSync } = useStore()
+  
+  // Use custom hook for AI plan management
+  const { 
+    plan: aiPlan, 
+    isLoading: isPlanLoading, 
+    error: planError, 
+    acceptPlan, 
+    rejectPlan, 
+    refresh: refreshPlan 
+  } = useAIPlan()
+
   const [isGenerating, setIsGenerating] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [feedbackMessage, setFeedbackMessage] = useState<string | null>(null)
+  const [showingTimeBlocks, setShowingTimeBlocks] = useState(false)
 
-  // Load today's AI plan on mount
+  // Sync plan to store when it changes
   useEffect(() => {
-    loadTodaysPlan()
-  }, [])
-
-  async function loadTodaysPlan() {
-    setIsLoading(true)
-    setError(null)
-    try {
-      const today = new Date().toISOString().split("T")[0]
-      const plan = await aiAPI.getDailyPlan(today)
-      setAiPlan(plan)
-      if (plan?.schedule) {
-        setCurrentSchedule(plan.schedule)
-      }
-    } catch (err) {
-      console.error("Failed to load plan:", err)
-      setError("Failed to load today's plan")
-    } finally {
-      setIsLoading(false)
+    if (aiPlan?.schedule) {
+      setCurrentSchedule(aiPlan.schedule)
     }
-  }
+  }, [aiPlan, setCurrentSchedule])
+
+  // Handle errors
+  useEffect(() => {
+    if (planError) {
+      setError(planError)
+    }
+  }, [planError])
+
+  // Initial check for time blocks
+  useEffect(() => {
+    if (scheduleSyncedFromTimeBlocks && currentSchedule.length > 0) {
+      setShowingTimeBlocks(true)
+    }
+  }, [scheduleSyncedFromTimeBlocks, currentSchedule])
 
   async function handleAccept() {
     if (!aiPlan) return
     try {
-      await aiAPI.acceptPlan(aiPlan.id)
-      setAiPlan({ ...aiPlan, status: "accepted" })
-      acceptSchedule()
+      await acceptPlan()
+      acceptSchedule() // Sync to store
       setFeedbackMessage("Schedule accepted! Let's have a productive day.")
       setTimeout(() => setFeedbackMessage(null), 3000)
     } catch (err) {
@@ -74,8 +62,7 @@ export default function DayPlanner() {
   async function handleReject() {
     if (!aiPlan) return
     try {
-      await aiAPI.rejectPlan(aiPlan.id)
-      setAiPlan({ ...aiPlan, status: "rejected" })
+      await rejectPlan()
       setFeedbackMessage("Plan rejected. You can regenerate or create your own schedule.")
       setTimeout(() => setFeedbackMessage(null), 3000)
     } catch (err) {
@@ -87,16 +74,18 @@ export default function DayPlanner() {
   async function handleRegenerate() {
     setIsGenerating(true)
     setError(null)
+    // Clear time block sync when generating new AI schedule
+    clearTimeBlockSync()
+    setShowingTimeBlocks(false)
     try {
       const response = await fetch("/api/ai/generate-plan", { method: "POST" })
       if (!response.ok) {
         throw new Error("Failed to generate plan")
       }
-      const data = await response.json()
-      setAiPlan(data.plan)
-      if (data.plan?.schedule) {
-        setCurrentSchedule(data.plan.schedule)
-      }
+      
+      // Refresh the plan using the hook to get the latest data
+      await refreshPlan()
+      
       setFeedbackMessage("New schedule generated!")
       setTimeout(() => setFeedbackMessage(null), 3000)
     } catch (err) {
@@ -110,6 +99,9 @@ export default function DayPlanner() {
   // Fallback schedule generation (original logic)
   async function handleFallbackGenerate() {
     setIsGenerating(true)
+    // Clear time block sync when generating new schedule
+    clearTimeBlockSync()
+    setShowingTimeBlocks(false)
     const highPriorityTasks = tasks.filter((t) => !t.completed && t.priority === "high")
 
     if (highPriorityTasks.length > 0) {
@@ -122,15 +114,8 @@ export default function DayPlanner() {
         type: "work" as const,
       }))
       setCurrentSchedule(newSchedule)
-      setAiPlan({
-        id: "local",
-        plan_date: new Date().toISOString().split("T")[0],
-        schedule: newSchedule,
-        explanation: "Schedule generated from your high-priority tasks.",
-        reasoning: null,
-        status: "pending",
-        generated_at: new Date().toISOString(),
-      })
+      // Note: In a real implementation, we should probably update the plan via service here too
+      // but for now we just update the local store schedule
     }
 
     await new Promise((resolve) => setTimeout(resolve, 500))
@@ -160,7 +145,7 @@ export default function DayPlanner() {
   }
 
   // Loading state
-  if (isLoading) {
+  if (isPlanLoading && !showingTimeBlocks) {
     return (
       <div className="min-h-screen bg-background p-8 flex items-center justify-center">
         <div className="text-center">
@@ -171,8 +156,9 @@ export default function DayPlanner() {
     )
   }
 
-  const schedule = aiPlan?.schedule || currentSchedule || []
-  const isPending = aiPlan?.status === "pending"
+  // Prioritize synced time blocks over AI plan
+  const schedule = showingTimeBlocks ? currentSchedule : (aiPlan?.schedule || currentSchedule || [])
+  const isPending = aiPlan?.status === "pending" && !showingTimeBlocks
   const isAccepted = aiPlan?.status === "accepted"
   const isRejected = aiPlan?.status === "rejected"
 
@@ -228,8 +214,23 @@ export default function DayPlanner() {
           </Card>
         )}
 
+        {/* Time Blocks Sync Notice */}
+        {showingTimeBlocks && (
+          <Card className="p-6 bg-gradient-to-br from-blue-500/10 to-cyan-500/10 border-blue-500/20">
+            <div className="flex items-start gap-3">
+              <Calendar className="w-5 h-5 text-blue-500 mt-1 flex-shrink-0" />
+              <div className="flex-1">
+                <p className="font-semibold text-foreground mb-2">Schedule from Time Blocks</p>
+                <p className="text-sm text-muted-foreground">
+                  This schedule was synced from your Time Block Calendar. You can use it as-is or generate a new AI-powered schedule.
+                </p>
+              </div>
+            </div>
+          </Card>
+        )}
+
         {/* AI Explanation */}
-        {aiPlan?.explanation && (
+        {aiPlan?.explanation && !showingTimeBlocks && (
           <Card className="p-6 bg-gradient-to-br from-primary/10 to-accent/10 border-primary/20">
             <div className="flex items-start gap-3">
               <Sparkles className="w-5 h-5 text-primary mt-1 flex-shrink-0" />
@@ -244,8 +245,15 @@ export default function DayPlanner() {
         {/* Schedule View */}
         <Card className="p-8 bg-card border-border">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-2xl font-bold text-foreground">Today's Optimized Schedule</h2>
-            {aiPlan && (
+            <h2 className="text-2xl font-bold text-foreground">
+              {showingTimeBlocks ? "Your Time Block Schedule" : "Today's Optimized Schedule"}
+            </h2>
+            {showingTimeBlocks ? (
+              <span className="px-3 py-1 rounded-full text-xs font-medium bg-blue-500/20 text-blue-600 flex items-center gap-1">
+                <Calendar className="w-3 h-3" />
+                From Time Blocks
+              </span>
+            ) : aiPlan && (
               <span className={`px-3 py-1 rounded-full text-xs font-medium ${
                 isAccepted ? "bg-green-500/20 text-green-600" :
                 isRejected ? "bg-red-500/20 text-red-600" :

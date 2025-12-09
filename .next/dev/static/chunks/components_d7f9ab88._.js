@@ -3580,7 +3580,7 @@ var _s = __turbopack_context__.k.signature();
 ;
 function DayPlanner() {
     _s();
-    const { tasks, currentSchedule, setCurrentSchedule, acceptSchedule, moodEntries, userPreferences, acceptedSchedules } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])();
+    const { tasks, currentSchedule, setCurrentSchedule, acceptSchedule, moodEntries, userPreferences, acceptedSchedules, getTodayClasses } = (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"])();
     const today = new Date().toISOString().split("T")[0];
     const todayAcceptedSchedule = acceptedSchedules.find((s)=>s.date === today);
     const [schedule, setSchedule] = (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$index$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useState"])(todayAcceptedSchedule?.schedule || currentSchedule || []);
@@ -3670,11 +3670,13 @@ function DayPlanner() {
         setScheduleAccepted(false);
         setError(null);
         try {
+            const todayClasses = getTodayClasses();
             const aiSchedule = await (0, __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$ai$2f$schedule$2d$generator$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["generateDailySchedule"])({
                 tasks: incompleteTasks,
                 mood: moodToUse.mood,
                 moodNotes: moodToUse.notes,
-                focusDuration: userPreferences.focusDuration
+                focusDuration: userPreferences.focusDuration,
+                weeklySchedule: todayClasses
             });
             if (aiSchedule.length === 0) {
                 setError("No schedule could be generated. Please try again.");
@@ -3735,7 +3737,7 @@ function DayPlanner() {
                                         children: "AI Day Planner"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 163,
+                                        lineNumber: 165,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3743,7 +3745,7 @@ function DayPlanner() {
                                         children: "Optimize your schedule with AI-powered planning"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 164,
+                                        lineNumber: 166,
                                         columnNumber: 13
                                     }, this),
                                     todayMood && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3755,19 +3757,19 @@ function DayPlanner() {
                                                 children: todayMood.mood
                                             }, void 0, false, {
                                                 fileName: "[project]/components/day-planner.tsx",
-                                                lineNumber: 167,
+                                                lineNumber: 169,
                                                 columnNumber: 31
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 166,
+                                        lineNumber: 168,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/day-planner.tsx",
-                                lineNumber: 162,
+                                lineNumber: 164,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -3779,20 +3781,20 @@ function DayPlanner() {
                                         className: "w-5 h-5"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 172,
+                                        lineNumber: 174,
                                         columnNumber: 13
                                     }, this),
                                     isGenerating ? "Generating..." : "Generate Schedule"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/day-planner.tsx",
-                                lineNumber: 171,
+                                lineNumber: 173,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/day-planner.tsx",
-                        lineNumber: 161,
+                        lineNumber: 163,
                         columnNumber: 9
                     }, this),
                     error && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -3804,7 +3806,7 @@ function DayPlanner() {
                                     className: "w-5 h-5"
                                 }, void 0, false, {
                                     fileName: "[project]/components/day-planner.tsx",
-                                    lineNumber: 181,
+                                    lineNumber: 183,
                                     columnNumber: 15
                                 }, this),
                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3812,18 +3814,18 @@ function DayPlanner() {
                                     children: error
                                 }, void 0, false, {
                                     fileName: "[project]/components/day-planner.tsx",
-                                    lineNumber: 182,
+                                    lineNumber: 184,
                                     columnNumber: 15
                                 }, this)
                             ]
                         }, void 0, true, {
                             fileName: "[project]/components/day-planner.tsx",
-                            lineNumber: 180,
+                            lineNumber: 182,
                             columnNumber: 13
                         }, this)
                     }, void 0, false, {
                         fileName: "[project]/components/day-planner.tsx",
-                        lineNumber: 179,
+                        lineNumber: 181,
                         columnNumber: 11
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -3834,7 +3836,7 @@ function DayPlanner() {
                                 children: "Today's Optimized Schedule"
                             }, void 0, false, {
                                 fileName: "[project]/components/day-planner.tsx",
-                                lineNumber: 189,
+                                lineNumber: 191,
                                 columnNumber: 11
                             }, this),
                             schedule.length === 0 ? /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3844,7 +3846,7 @@ function DayPlanner() {
                                         className: "w-16 h-16 text-muted-foreground mx-auto mb-4 opacity-50"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 193,
+                                        lineNumber: 195,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("p", {
@@ -3852,13 +3854,13 @@ function DayPlanner() {
                                         children: tasks.filter((t)=>!t.completed).length === 0 ? "Add some tasks to generate your schedule" : "Click 'Generate Schedule' to create your AI-optimized daily plan"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 194,
+                                        lineNumber: 196,
                                         columnNumber: 15
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/day-planner.tsx",
-                                lineNumber: 192,
+                                lineNumber: 194,
                                 columnNumber: 13
                             }, this) : /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Fragment"], {
                                 children: [
@@ -3892,7 +3894,7 @@ function DayPlanner() {
                                                                                     children: item.time
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/components/day-planner.tsx",
-                                                                                    lineNumber: 225,
+                                                                                    lineNumber: 227,
                                                                                     columnNumber: 31
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3903,7 +3905,7 @@ function DayPlanner() {
                                                                                     ]
                                                                                 }, void 0, true, {
                                                                                     fileName: "[project]/components/day-planner.tsx",
-                                                                                    lineNumber: 226,
+                                                                                    lineNumber: 228,
                                                                                     columnNumber: 31
                                                                                 }, this),
                                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("span", {
@@ -3911,13 +3913,13 @@ function DayPlanner() {
                                                                                     children: item.priority
                                                                                 }, void 0, false, {
                                                                                     fileName: "[project]/components/day-planner.tsx",
-                                                                                    lineNumber: 229,
+                                                                                    lineNumber: 231,
                                                                                     columnNumber: 31
                                                                                 }, this)
                                                                             ]
                                                                         }, void 0, true, {
                                                                             fileName: "[project]/components/day-planner.tsx",
-                                                                            lineNumber: 224,
+                                                                            lineNumber: 226,
                                                                             columnNumber: 29
                                                                         }, this),
                                                                         /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("h3", {
@@ -3925,13 +3927,13 @@ function DayPlanner() {
                                                                             children: item.task
                                                                         }, void 0, false, {
                                                                             fileName: "[project]/components/day-planner.tsx",
-                                                                            lineNumber: 241,
+                                                                            lineNumber: 243,
                                                                             columnNumber: 29
                                                                         }, this)
                                                                     ]
                                                                 }, void 0, true, {
                                                                     fileName: "[project]/components/day-planner.tsx",
-                                                                    lineNumber: 223,
+                                                                    lineNumber: 225,
                                                                     columnNumber: 27
                                                                 }, this),
                                                                 /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3941,23 +3943,23 @@ function DayPlanner() {
                                                                         children: Math.floor(item.duration / 30)
                                                                     }, void 0, false, {
                                                                         fileName: "[project]/components/day-planner.tsx",
-                                                                        lineNumber: 244,
+                                                                        lineNumber: 246,
                                                                         columnNumber: 29
                                                                     }, this)
                                                                 }, void 0, false, {
                                                                     fileName: "[project]/components/day-planner.tsx",
-                                                                    lineNumber: 243,
+                                                                    lineNumber: 245,
                                                                     columnNumber: 27
                                                                 }, this)
                                                             ]
                                                         }, void 0, true, {
                                                             fileName: "[project]/components/day-planner.tsx",
-                                                            lineNumber: 222,
+                                                            lineNumber: 224,
                                                             columnNumber: 25
                                                         }, this)
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/day-planner.tsx",
-                                                        lineNumber: 217,
+                                                        lineNumber: 219,
                                                         columnNumber: 23
                                                     }, this),
                                                     gap > 0 && nextItem && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -3973,19 +3975,19 @@ function DayPlanner() {
                                                         ]
                                                     }, void 0, true, {
                                                         fileName: "[project]/components/day-planner.tsx",
-                                                        lineNumber: 250,
+                                                        lineNumber: 252,
                                                         columnNumber: 25
                                                     }, this)
                                                 ]
                                             }, idx, true, {
                                                 fileName: "[project]/components/day-planner.tsx",
-                                                lineNumber: 216,
+                                                lineNumber: 218,
                                                 columnNumber: 21
                                             }, this);
                                         })
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 202,
+                                        lineNumber: 204,
                                         columnNumber: 15
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4001,14 +4003,14 @@ function DayPlanner() {
                                                         className: "w-4 h-4"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/day-planner.tsx",
-                                                        lineNumber: 266,
+                                                        lineNumber: 268,
                                                         columnNumber: 19
                                                     }, this),
                                                     "Regenerate"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/day-planner.tsx",
-                                                lineNumber: 260,
+                                                lineNumber: 262,
                                                 columnNumber: 17
                                             }, this),
                                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$button$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Button"], {
@@ -4020,20 +4022,20 @@ function DayPlanner() {
                                                         className: "w-4 h-4"
                                                     }, void 0, false, {
                                                         fileName: "[project]/components/day-planner.tsx",
-                                                        lineNumber: 274,
+                                                        lineNumber: 276,
                                                         columnNumber: 19
                                                     }, this),
                                                     "Accept Schedule"
                                                 ]
                                             }, void 0, true, {
                                                 fileName: "[project]/components/day-planner.tsx",
-                                                lineNumber: 269,
+                                                lineNumber: 271,
                                                 columnNumber: 17
                                             }, this)
                                         ]
                                     }, void 0, true, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 259,
+                                        lineNumber: 261,
                                         columnNumber: 15
                                     }, this),
                                     scheduleAccepted && /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("div", {
@@ -4041,7 +4043,7 @@ function DayPlanner() {
                                         children: "Schedule accepted and saved to your schedule history!"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 280,
+                                        lineNumber: 282,
                                         columnNumber: 17
                                     }, this)
                                 ]
@@ -4049,7 +4051,7 @@ function DayPlanner() {
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/day-planner.tsx",
-                        lineNumber: 188,
+                        lineNumber: 190,
                         columnNumber: 9
                     }, this),
                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$ui$2f$card$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["Card"], {
@@ -4062,14 +4064,14 @@ function DayPlanner() {
                                         className: "w-5 h-5 text-primary"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 291,
+                                        lineNumber: 293,
                                         columnNumber: 13
                                     }, this),
                                     "AI Scheduling Tips"
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/day-planner.tsx",
-                                lineNumber: 290,
+                                lineNumber: 292,
                                 columnNumber: 11
                             }, this),
                             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("ul", {
@@ -4079,53 +4081,53 @@ function DayPlanner() {
                                         children: "✓ High-priority tasks scheduled during peak focus hours (9-11 AM)"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 295,
+                                        lineNumber: 297,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                         children: "✓ Pomodoro breaks inserted every 90 minutes for optimal productivity"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 296,
+                                        lineNumber: 298,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                         children: "✓ Similar tasks batched together to minimize context switching"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 297,
+                                        lineNumber: 299,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                         children: "✓ Buffer time added before meetings to prepare mentally"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 298,
+                                        lineNumber: 300,
                                         columnNumber: 13
                                     }, this),
                                     /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])("li", {
                                         children: "✓ Schedule adapts to your current mood and energy levels"
                                     }, void 0, false, {
                                         fileName: "[project]/components/day-planner.tsx",
-                                        lineNumber: 299,
+                                        lineNumber: 301,
                                         columnNumber: 13
                                     }, this)
                                 ]
                             }, void 0, true, {
                                 fileName: "[project]/components/day-planner.tsx",
-                                lineNumber: 294,
+                                lineNumber: 296,
                                 columnNumber: 11
                             }, this)
                         ]
                     }, void 0, true, {
                         fileName: "[project]/components/day-planner.tsx",
-                        lineNumber: 289,
+                        lineNumber: 291,
                         columnNumber: 9
                     }, this)
                 ]
             }, void 0, true, {
                 fileName: "[project]/components/day-planner.tsx",
-                lineNumber: 159,
+                lineNumber: 161,
                 columnNumber: 7
             }, this),
             /*#__PURE__*/ (0, __TURBOPACK__imported__module__$5b$project$5d2f$node_modules$2f$next$2f$dist$2f$compiled$2f$react$2f$jsx$2d$dev$2d$runtime$2e$js__$5b$app$2d$client$5d$__$28$ecmascript$29$__["jsxDEV"])(__TURBOPACK__imported__module__$5b$project$5d2f$components$2f$mood$2d$prompt$2d$dialog$2e$tsx__$5b$app$2d$client$5d$__$28$ecmascript$29$__["default"], {
@@ -4137,17 +4139,17 @@ function DayPlanner() {
                 onMoodLogged: handleMoodLogged
             }, void 0, false, {
                 fileName: "[project]/components/day-planner.tsx",
-                lineNumber: 305,
+                lineNumber: 307,
                 columnNumber: 7
             }, this)
         ]
     }, void 0, true, {
         fileName: "[project]/components/day-planner.tsx",
-        lineNumber: 158,
+        lineNumber: 160,
         columnNumber: 5
     }, this);
 }
-_s(DayPlanner, "30WzOBCSGD1lS5R5pjc8yq6SIQg=", false, function() {
+_s(DayPlanner, "l/4NCeB1Gx/S8nPuUbihd4QkmA8=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"]
     ];
@@ -7205,7 +7207,7 @@ function TaskManager() {
         columnNumber: 5
     }, this);
 }
-_s(TaskManager, "XAhaKsnb/5jdSRYI+oZ0IFfKjDI=", false, function() {
+_s(TaskManager, "x54bExLVl/YoQEXmLjbC57JcF5Y=", false, function() {
     return [
         __TURBOPACK__imported__module__$5b$project$5d2f$lib$2f$store$2e$ts__$5b$app$2d$client$5d$__$28$ecmascript$29$__["useStore"]
     ];

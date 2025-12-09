@@ -10,7 +10,7 @@ import type { ScheduleItem } from "@/lib/store"
 import MoodPromptDialog from "./mood-prompt-dialog"
 
 export default function DayPlanner() {
-  const { tasks, currentSchedule, setCurrentSchedule, acceptSchedule, moodEntries, userPreferences, acceptedSchedules } = useStore()
+  const { tasks, currentSchedule, setCurrentSchedule, acceptSchedule, moodEntries, userPreferences, acceptedSchedules, getTodayClasses } = useStore()
   const today = new Date().toISOString().split("T")[0]
   const todayAcceptedSchedule = acceptedSchedules.find((s) => s.date === today)
   const [schedule, setSchedule] = useState<ScheduleItem[]>(todayAcceptedSchedule?.schedule || currentSchedule || [])
@@ -96,11 +96,13 @@ export default function DayPlanner() {
     setError(null)
 
     try {
+      const todayClasses = getTodayClasses()
       const aiSchedule = await generateDailySchedule({
         tasks: incompleteTasks,
         mood: moodToUse.mood,
         moodNotes: moodToUse.notes,
         focusDuration: userPreferences.focusDuration,
+        weeklySchedule: todayClasses,
       })
 
       if (aiSchedule.length === 0) {

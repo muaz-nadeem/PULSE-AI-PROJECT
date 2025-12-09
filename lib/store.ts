@@ -121,6 +121,15 @@ export interface TimeBlock {
   notes?: string
 }
 
+export interface WeeklyClassSchedule {
+  // Format: { [dayOfWeek]: { [timeSlot]: string } }
+  // dayOfWeek: "monday" | "tuesday" | "wednesday" | "thursday" | "friday" | "saturday" | "sunday"
+  // timeSlot: "08:00-08:50" | "09:00-09:50" | etc.
+  // value: class name or empty string
+  schedule: Record<string, Record<string, string>>
+  imageUrl?: string // If uploaded as image
+}
+
 export interface SoundPreset {
   id: string
   name: string
@@ -448,6 +457,7 @@ export const useStore = create<StoreState>((set, get) => ({
   currentSchedule: [],
   acceptedSchedules: [] as AcceptedSchedule[],
   timeBlocks: [],
+  weeklyClassSchedule: null,
   soundPresets: [
     {
       id: "white_noise_1",
@@ -1400,6 +1410,82 @@ export const useStore = create<StoreState>((set, get) => ({
       }
     }),
 
+  setWeeklyClassSchedule: (schedule) => {
+    set({ weeklyClassSchedule: schedule })
+    // Persist to localStorage
+    if (typeof window !== "undefined") {
+      try {
+        localStorage.setItem("weeklyClassSchedule", JSON.stringify(schedule))
+      } catch (error) {
+        console.error("Failed to save weekly schedule to localStorage:", error)
+      }
+    }
+  },
+
+  getTodayClasses: () => {
+    const state = get()
+    if (!state.weeklyClassSchedule) {
+      // Try to load from localStorage
+      if (typeof window !== "undefined") {
+        try {
+          const stored = localStorage.getItem("weeklyClassSchedule")
+          if (stored) {
+            const parsed = JSON.parse(stored)
+            set({ weeklyClassSchedule: parsed })
+            // Recursively call to process the loaded schedule
+            const updatedState = get()
+            if (updatedState.weeklyClassSchedule) {
+              const today = new Date()
+              const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+              const todayName = dayNames[today.getDay()].toLowerCase()
+              const todaySchedule = updatedState.weeklyClassSchedule.schedule[todayName] || {}
+              const classes: Array<{ time: string; className: string }> = []
+
+              Object.entries(todaySchedule).forEach(([timeSlot, className]) => {
+                if (className && className.trim()) {
+                  classes.push({ time: timeSlot, className: className.trim() })
+                }
+              })
+
+              classes.sort((a, b) => {
+                const aStart = a.time.split("-")[0]
+                const bStart = b.time.split("-")[0]
+                return aStart.localeCompare(bStart)
+              })
+
+              return classes
+            }
+          }
+        } catch (error) {
+          console.error("Failed to load weekly schedule from localStorage:", error)
+        }
+      }
+      return []
+    }
+
+    const today = new Date()
+    const dayNames = ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"]
+    const todayName = dayNames[today.getDay()].toLowerCase()
+
+    const todaySchedule = state.weeklyClassSchedule.schedule[todayName] || {}
+    const classes: Array<{ time: string; className: string }> = []
+
+    Object.entries(todaySchedule).forEach(([timeSlot, className]) => {
+      if (className && className.trim()) {
+        classes.push({ time: timeSlot, className: className.trim() })
+      }
+    })
+
+    // Sort by time
+    classes.sort((a, b) => {
+      const aStart = a.time.split("-")[0]
+      const bStart = b.time.split("-")[0]
+      return aStart.localeCompare(bStart)
+    })
+
+    return classes
+  },
+
   addSoundPreset: (preset) =>
     set((state) => {
       const newPreset: SoundPreset = {
@@ -1811,6 +1897,7 @@ For detailed analytics, visit the Analytics dashboard.
       distractions: [],
       challenges: [],
       timeBlocks: [],
+      weeklyClassSchedule: null,
       notifications: [],
     })
   },
